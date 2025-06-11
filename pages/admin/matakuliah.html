@@ -1,0 +1,590 @@
+<!-- admin/matakuliah.html -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mata Kuliah - RoomEase Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase Admin</h1>
+    <ul class="flex space-x-4">
+      <li><a href="../dashboard/admin-dashboard.html" class="hover:bg-blue-500 p-2 rounded-lg">Dashboard</a></li>
+      <li><a href="jadwal.html" class="hover:bg-blue-500 p-2 rounded-lg">Jadwal</a></li>
+      <li><a href="ruangan.html" class="hover:bg-blue-500 p-2 rounded-lg">Ruangan</a></li>
+      <li><a href="dosen.html" class="hover:bg-blue-500 p-2 rounded-lg">Dosen</a></li>
+      <li><a href="matakuliah.html" class="bg-blue-700 p-2 rounded-lg">Mata Kuliah</a></li>
+      <li><a href="kelas.html" class="hover:bg-blue-500 p-2 rounded-lg">Kelas</a></li>
+      <li><a href="CreateUser.html" class="hover:bg-blue-500 p-2 rounded-lg">User</a></li>
+    </ul>
+    <div>
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+        <span id="profileInitials">Admin</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">Daftar Mata Kuliah</h2>
+    <button id="addMatkulBtn" class="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Tambah Mata Kuliah</button>
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white shadow rounded-lg">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">ID Mata Kuliah</th>
+            <th class="py-3 px-6 text-left">Nama Mata Kuliah</th>
+            <th class="py-3 px-6 text-left">Prodi</th>
+            <th class="py-3 px-6 text-left">Semester</th>
+            <th class="py-3 px-6 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="matkulTable" class="text-gray-600 text-sm font-light"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal Tambah Mata Kuliah -->
+    <div id="addMatkulModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Tambah Mata Kuliah</h3>
+        <form id="addMatkulForm" class="mt-4 space-y-4">
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Mata Kuliah</label>
+            <input type="text" id="namaMatkul" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Algoritma dan Pemrograman" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Prodi</label>
+            <select id="idProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Semester</label>
+            <input type="number" id="semester" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1-8" min="1" max="8" required>
+          </div>
+          <button type="submit" id="addMatkulSubmitBtn" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelAddMatkulBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Edit Mata Kuliah -->
+    <div id="editMatkulModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Edit Mata Kuliah</h3>
+        <form id="editMatkulForm" class="mt-4 space-y-4">
+          <input type="hidden" id="editMatkulId">
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Mata Kuliah</label>
+            <input type="text" id="editNamaMatkul" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Algoritma dan Pemrograman" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Prodi</label>
+            <select id="editIdProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Semester</label>
+            <input type="number" id="editSemester" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1-8" min="1" max="8" required>
+          </div>
+          <button type="submit" id="editMatkulSubmitBtn" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelEditMatkulBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk memeriksa token
+    function isTokenExpired(token) {
+      if (!token) {
+        console.error('Token tidak ditemukan di localStorage');
+        return true;
+      }
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.error('Format token tidak valid:', token);
+          return true;
+        }
+        const payload = JSON.parse(atob(parts[1]));
+        const isExpired = payload.exp < Date.now() / 1000;
+        if (isExpired) {
+          console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+        }
+        return isExpired;
+      } catch (error) {
+        console.error('Error saat memeriksa token:', error);
+        return true;
+      }
+    }
+
+    // Fungsi untuk menampilkan loading state pada tombol
+    function setLoadingState(button, isLoading) {
+      if (isLoading) {
+        button.disabled = true;
+        button.textContent = 'Menyimpan...';
+      } else {
+        button.disabled = false;
+        button.textContent = 'Simpan';
+      }
+    }
+
+    // Fungsi untuk mengambil data prodi
+    async function fetchProdi() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return [];
+      }
+
+      try {
+        console.log('Mengambil data prodi dari server...');
+        const response = await fetch('http://localhost:3000/api/prodi', { // Ubah dari /api/mata-kuliah/prodi
+        headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return [];
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data prodi');
+        }
+        const prodi = await response.json();
+        console.log('Data prodi diterima:', prodi);
+        return prodi;
+      } catch (error) {
+        console.error('Error fetching prodi:', error);
+        alert('Gagal mengambil data prodi: ' + error.message);
+        return [];
+      }
+    }
+
+    // Fungsi untuk mengisi dropdown prodi
+    function populateProdiDropdown(prodi, addSelectId, editSelectId) {
+      const addSelect = document.getElementById(addSelectId);
+      const editSelect = document.getElementById(editSelectId);
+      addSelect.innerHTML = '<option value="">Pilih Prodi</option>';
+      editSelect.innerHTML = '<option value="">Pilih Prodi</option>';
+      prodi.forEach((item) => {
+        const option1 = document.createElement('option');
+        option1.value = item.id_prodi; // Gunakan id_prodi sebagai value
+        option1.textContent = item.nama_prodi;
+        const option2 = document.createElement('option');
+        option2.value = item.id_prodi; // Gunakan id_prodi sebagai value
+        option2.textContent = item.nama_prodi;
+        addSelect.appendChild(option1);
+        editSelect.appendChild(option2);
+      });
+    }
+
+    // Fungsi untuk mengambil data mata kuliah
+    async function fetchMatkul() {
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        console.log('Mengambil data mata kuliah dari server...');
+        const response = await fetch('http://localhost:3000/api/mata-kuliah', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data mata kuliah');
+        }
+        const matkul = await response.json();
+        console.log('Data mata kuliah diterima:', matkul);
+        displayMatkul(matkul);
+      } catch (error) {
+        console.error('Error fetching mata kuliah:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal mengambil data mata kuliah: ' + error.message);
+        }
+        displayMatkul([]);
+      }
+    }
+
+    // Fungsi untuk menampilkan mata kuliah
+    function displayMatkul(matkul) {
+      const tbody = document.getElementById("matkulTable");
+      tbody.innerHTML = "";
+      if (matkul.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="5" class="py-3 px-6 text-center text-gray-500">Tidak ada data mata kuliah.</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      matkul.forEach((item) => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-100";
+        row.innerHTML = `
+          <td class="py-3 px-6">${item.id_matkul || 'N/A'}</td>
+          <td class="py-3 px-6">${item.nama_matkul || 'N/A'}</td>
+          <td class="py-3 px-6">${item.nama_prodi || 'N/A'}</td>
+          <td class="py-3 px-6">${item.semester || 'N/A'}</td>
+          <td class="py-3 px-6">
+            <button data-id="${item.id_matkul}" data-nama="${item.nama_matkul}" data-id-prodi="${item.id_prodi || ''}" data-semester="${item.semester || ''}" class="editMatkulBtn bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2">Edit</button>
+            <button onclick="deleteMatkul(${item.id_matkul})" class="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.querySelectorAll(".editMatkulBtn").forEach((button) => {
+        button.addEventListener("click", function () {
+          const id = this.getAttribute("data-id");
+          const nama = this.getAttribute("data-nama");
+          const idProdi = this.getAttribute("data-id-prodi");
+          const semester = this.getAttribute("data-semester");
+          editMatkul(id, nama, idProdi, semester);
+        });
+      });
+    }
+
+    // Fungsi untuk menambah mata kuliah
+    async function addMatkul(nama, semester, idProdi) {
+      console.log('Fungsi addMatkul dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const semesterNum = parseInt(semester, 10);
+      if (isNaN(semesterNum) || semesterNum < 1 || semesterNum > 8) {
+        console.log('Validasi gagal: Semester harus antara 1 dan 8');
+        alert('Semester harus antara 1 dan 8');
+        return;
+      }
+      if (!idProdi) {
+        console.log('Validasi gagal: Prodi harus dipilih');
+        alert('Prodi harus dipilih');
+        return;
+      }
+
+      const submitBtn = document.getElementById('addMatkulSubmitBtn');
+      setLoadingState(submitBtn, true);
+
+      try {
+        console.log('Mengirim request POST ke /api/mata-kuliah dengan data:', { nama_matkul: nama, semester: semesterNum, id_prodi: idProdi });
+        const response = await fetch('http://localhost:3000/api/mata-kuliah', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_matkul: nama, id_prodi: idProdi, semester: semesterNum }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal menambahkan mata kuliah');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchMatkul();
+        document.getElementById('addMatkulModal').classList.add('hidden');
+        document.getElementById('addMatkulForm').reset();
+        alert('Mata kuliah berhasil ditambahkan!');
+      } catch (error) {
+        console.error('Error adding mata kuliah:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal menambahkan mata kuliah: ' + error.message);
+        }
+      } finally {
+        setLoadingState(submitBtn, false);
+      }
+    }
+
+    // Fungsi untuk mengedit mata kuliah
+    async function updateMatkul(id, nama, idProdi, semester) {
+      console.log('Fungsi updateMatkul dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const semesterNum = parseInt(semester, 10);
+      if (isNaN(semesterNum) || semesterNum < 1 || semesterNum > 8) {
+        console.log('Validasi gagal: Semester harus antara 1 dan 8');
+        alert('Semester harus antara 1 dan 8');
+        return;
+      }
+      if (!idProdi) {
+        console.log('Validasi gagal: Prodi harus dipilih');
+        alert('Prodi harus dipilih');
+        return;
+      }
+
+      const submitBtn = document.getElementById('editMatkulSubmitBtn');
+      setLoadingState(submitBtn, true);
+
+      try {
+        console.log('Mengirim request PUT ke /api/mata-kuliah/' + id + ' dengan data:', { nama_matkul: nama, id_prodi: idProdi, semester: semesterNum });
+        const response = await fetch(`http://localhost:3000/api/mata-kuliah/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_matkul: nama, id_prodi: idProdi, semester: semesterNum }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal memperbarui mata kuliah');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchMatkul();
+        document.getElementById('editMatkulModal').classList.add('hidden');
+        alert('Mata kuliah berhasil diperbarui!');
+      } catch (error) {
+        console.error('Error updating mata kuliah:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal memperbarui mata kuliah: ' + error.message);
+        }
+      } finally {
+        setLoadingState(submitBtn, false);
+      }
+    }
+
+    // Fungsi untuk menghapus mata kuliah
+    async function deleteMatkul(id) {
+      console.log('Fungsi deleteMatkul dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      if (!confirm('Apakah Anda yakin ingin menghapus mata kuliah ini?')) return;
+
+      try {
+        console.log('Mengirim request DELETE ke /api/mata-kuliah/' + id);
+        const response = await fetch(`http://localhost:3000/api/mata-kuliah/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal menghapus mata kuliah');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchMatkul();
+        alert('Mata kuliah berhasil dihapus!');
+      } catch (error) {
+        console.error('Error deleting mata kuliah:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal menghapus mata kuliah: ' + error.message);
+        }
+      }
+    }
+
+    // Fungsi untuk membuka modal edit
+    function editMatkul(id, nama, idProdi, semester) {
+      console.log('editMatkul dipanggil:', { id, nama, idProdi, semester });
+      document.getElementById('editMatkulId').value = id;
+      document.getElementById('editNamaMatkul').value = nama;
+      document.getElementById('editIdProdi').value = idProdi || '';
+      document.getElementById('editSemester').value = semester || '';
+      document.getElementById('editMatkulModal').classList.remove('hidden');
+    }
+
+    // Event Listeners
+    document.addEventListener("DOMContentLoaded", async () => {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+
+      console.log('Token dari localStorage:', token);
+      console.log('Peran dari localStorage:', peran);
+
+      if (!token || isTokenExpired(token)) {
+        alert("Sesi Anda telah berakhir. Silakan login kembali.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      if (peran !== "admin") {
+        alert("Akses ditolak. Halaman ini hanya untuk admin.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      // Ambil data prodi untuk dropdown
+      const prodi = await fetchProdi();
+      populateProdiDropdown(prodi, 'idProdi', 'editIdProdi');
+
+      fetchMatkul();
+
+      document.getElementById('addMatkulBtn').addEventListener('click', () => {
+        console.log('Tombol Tambah Mata Kuliah diklik');
+        document.getElementById('addMatkulModal').classList.remove('hidden');
+      });
+
+      document.getElementById('addMatkulForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        console.log('Form Tambah Mata Kuliah disubmit');
+        const nama = document.getElementById('namaMatkul').value;
+        const semester = document.getElementById('semester').value;
+        const idProdi = document.getElementById('idProdi').value;
+        console.log('Data yang akan dikirim:', { nama, semester, idProdi });
+        addMatkul(nama, semester, idProdi);
+      });
+
+      document.getElementById('editMatkulForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        console.log('Form Edit Mata Kuliah disubmit');
+        const id = document.getElementById('editMatkulId').value;
+        const nama = document.getElementById('editNamaMatkul').value;
+        const idProdi = document.getElementById('editIdProdi').value;
+        const semester = document.getElementById('editSemester').value;
+        console.log('Data yang akan dikirim:', { id, nama, idProdi, semester });
+        updateMatkul(id, nama, idProdi, semester);
+      });
+
+      document.getElementById('cancelAddMatkulBtn').addEventListener('click', () => {
+        console.log('Tombol Batal (Tambah) diklik');
+        document.getElementById('addMatkulModal').classList.add('hidden');
+        document.getElementById('addMatkulForm').reset();
+        setLoadingState(document.getElementById('addMatkulSubmitBtn'), false);
+      });
+
+      document.getElementById('cancelEditMatkulBtn').addEventListener('click', () => {
+        console.log('Tombol Batal (Edit) diklik');
+        document.getElementById('editMatkulModal').classList.add('hidden');
+        setLoadingState(document.getElementById('editMatkulSubmitBtn'), false);
+      });
+    });
+  </script>
+</body>
+</html>

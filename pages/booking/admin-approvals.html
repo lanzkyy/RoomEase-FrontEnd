@@ -1,0 +1,224 @@
+<!-- booking/admin-approvals.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persetujuan Booking - RoomEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-10">
+    <div class="max-w-6xl mx-auto bg-white p-6 shadow-lg rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-700">Daftar Pemesanan</h2>
+            <a href="../dashboard/admin-dashboard.html" class="px-4 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600">Kembali</a>
+        </div>
+        <div class="mb-4">
+            <label for="statusFilter" class="mr-2">Filter Status:</label>
+            <select id="statusFilter" class="border p-2 rounded" onchange="fetchBookings()">
+                <option value="">Semua</option>
+                <option value="diproses">Diproses</option>
+                <option value="disetujui">Disetujui</option>
+                <option value="ditolak">Ditolak</option>
+                <option value="Selesai">Selesai</option>
+            </select>
+        </div>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border p-2">Kelas</th>
+                    <th class="border p-2">Ruangan</th>
+                    <th class="border p-2">Mata Kuliah</th>
+                    <th class="border p-2">Dosen</th>
+                    <th class="border p-2">Tanggal</th>
+                    <th class="border p-2">Jam</th>
+                    <th class="border p-2">Status</th>
+                    <th class="border p-2">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="approvalTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        let userProfile = null;
+
+        function isTokenExpired(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                return payload.exp < Date.now() / 1000;
+            } catch (error) {
+                return true;
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch("http://localhost:3000/api/auth/profile", {
+                    headers: { "Authorization": `Bearer ${token}` },
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Gagal memuat profil pengguna");
+                }
+                userProfile = await response.json();
+            } catch (error) {
+                console.error("Gagal mengambil profil pengguna:", error);
+                alert(`Gagal memuat profil pengguna: ${error.message}. Silakan login ulang.`);
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+            }
+        }
+
+        async function approveBooking(id) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: 'disetujui' })
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Gagal menyetujui pemesanan');
+    }
+    alert('Pemesanan berhasil disetujui');
+    fetchBookings(); // Refresh daftar pemesanan
+  } catch (error) {
+    console.error('Error approving booking:', error);
+    alert('Gagal menyetujui pemesanan: ' + error.message);
+  }
+}
+
+async function rejectBooking(id) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: 'ditolak' })
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Gagal menolak pemesanan');
+    }
+    alert('Pemesanan berhasil ditolak');
+    fetchBookings(); // Refresh daftar pemesanan
+  } catch (error) {
+    console.error('Error rejecting booking:', error);
+    alert('Gagal menolak pemesanan: ' + error.message);
+  }
+}
+
+        async function rejectBooking(id) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ status: "ditolak" }),
+                });
+                if (response.ok) {
+                    alert("Booking telah ditolak!");
+                    fetchBookings();
+                } else {
+                    const result = await response.json();
+                    alert(`Gagal menolak: ${result.message || "Terjadi kesalahan"}`);
+                }
+            } catch (error) {
+                console.error("Error rejecting booking:", error);
+                alert("Terjadi kesalahan pada server: " + error.message);
+            }
+        }
+
+        async function fetchBookings() {
+    try {
+        const statusFilter = document.getElementById("statusFilter").value;
+        const url = statusFilter 
+            ? `http://localhost:3000/api/pemesanan/bookings?status=${statusFilter}`
+            : `http://localhost:3000/api/pemesanan/bookings`;
+        console.log("Fetching bookings from URL:", url);
+        const response = await fetch(url, {
+            headers: { "Authorization": `Bearer ${token}` },
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            console.error("Response error:", error);
+            if (response.status === 401 || response.status === 403) {
+                alert(error.message || "Akses ditolak. Silakan login ulang.");
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+            throw new Error(`HTTP error! Status: ${response.status} - ${error.message || "Kesalahan tidak diketahui"}`);
+        }
+        const bookings = await response.json();
+        console.log("Bookings fetched:", bookings);
+
+        const tableBody = document.getElementById("approvalTable");
+        tableBody.innerHTML = "";
+        if (bookings.length === 0) {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td colspan="8" class="border p-2 text-center">Tidak ada pemesanan.</td>`;
+            tableBody.appendChild(row);
+            return;
+        }
+
+        bookings.forEach(booking => {
+            const tanggal = new Date(booking.waktu_mulai).toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" });
+            const jamMulai = new Date(booking.waktu_mulai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Makassar" });
+            const jamSelesai = new Date(booking.waktu_selesai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Makassar" });
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="border p-2">${booking.nama_kelas || "Tidak ada"}</td>
+                <td class="border p-2">${booking.nama_ruangan || "Tidak ada"}</td>
+                <td class="border p-2">${booking.nama_matkul || "Tidak ada"}</td>
+                <td class="border p-2">${booking.nama_dosen || "Tidak ada"}</td>
+                <td class="border p-2">${tanggal}</td>
+                <td class="border p-2">${jamMulai} - ${jamSelesai}</td>
+                <td class="border p-2">${booking.status}</td>
+                <td class="border p-2">
+                    ${booking.status === 'diproses' ? `
+                        <button onclick="approveBooking('${booking.id}')" class="bg-green-500 text-white px-3 py-1 rounded">Setujui</button>
+                        <button onclick="rejectBooking('${booking.id}')" class="bg-red-500 text-white px-3 py-1 rounded ml-2">Tolak</button>
+                    ` : '-'}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        alert("Gagal memuat daftar booking: " + error.message);
+    }
+}
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!token || isTokenExpired(token)) {
+                alert("Anda harus login sebagai admin!");
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            await fetchUserProfile();
+            if (!userProfile || userProfile.peran !== "admin") {
+                alert("Hanya admin yang dapat mengakses halaman ini!");
+                localStorage.removeItem("token");
+                window.location.href = userProfile && (userProfile.peran === "ketua" || userProfile.peran === "sekretaris") 
+                    ? "../dashboard/ketua-dashboard.html" 
+                    : "../auth/login.html";
+                return;
+            }
+
+            fetchBookings();
+        });
+    </script>
+</body>
+</html>

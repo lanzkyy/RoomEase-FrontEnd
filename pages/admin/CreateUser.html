@@ -1,0 +1,823 @@
+<!-- admin/CreateUser.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelola User - RoomEase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase</h1>
+    <ul class="flex space-x-4">
+      <li class="relative">
+        <button id="dropdownButton" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">
+          Admin ⌄
+        </button>
+        <!-- Dropdown Menu -->
+        <div id="dropdownMenu" class="absolute right-0 top-full mt-2 w-72 bg-blue-900 text-white shadow-lg rounded-lg hidden z-50">
+          <div class="p-4 text-gray-300 text-sm font-bold">ADMIN MENU</div>
+          <ul>
+            <a href="../admin/kelas.html">
+              <li class="px-4 py-3 hover:bg-blue-700 flex items-center space-x-3 cursor-pointer">
+                🏫 <span class="font-semibold">Kelas</span>
+              </li>
+            </a>
+            <a href="../admin/ruangan.html">
+              <li class="px-4 py-3 hover:bg-blue-700 flex items-center space-x-3 cursor-pointer">
+                🏢 <span class="font-semibold">Ruangan</span>
+              </li>
+            </a>
+            <a href="../admin/matakuliah.html">
+              <li class="px-4 py-3 hover:bg-blue-700 flex items-center space-x-3 cursor-pointer">
+                📘 <span class="font-semibold">Mata Kuliah</span>
+              </li>
+            </a>
+            <a href="../admin/dosen.html">
+              <li class="px-4 py-3 hover:bg-blue-700 flex items-center space-x-3 cursor-pointer">
+                👨‍🏫 <span class="font-semibold">Dosen</span>
+              </li>
+            </a>
+            <a href="../admin/jadwal.html">
+              <li class="px-4 py-3 hover:bg-blue-700 flex items-center space-x-3 cursor-pointer">
+                📅 <span class="font-semibold">Jadwal</span>
+              </li>
+            </a>
+            <a href="../admin/CreateUser.html">
+              <li class="px-4 py-3 hover:bg-blue-700 flex items-center space-x-3 cursor-pointer">
+                👤 <span class="font-semibold">User</span>
+              </li>
+            </a>
+          </ul>
+        </div>
+      </li>
+      <li><a href="../dashboard/admin-dashboard.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Dashboard</a></li>
+      <li><a href="../booking/admin-approvals.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Booking</a></li>
+      <li><a href="../booking/kalender.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Kalender</a></li>
+      <li><a href="../settings.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Pengaturan</a></li>
+      <li><a href="#" class="block p-2 rounded-lg text-red-500 hover:bg-red-500 hover:text-white" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold">Kelola User</h2>
+      <a href="../dashboard/admin-dashboard.html" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Kembali</a>
+    </div>
+
+    <!-- Form untuk Membuat User Baru -->
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto mb-6">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">Buat User Baru</h3>
+      <form id="createUserForm" class="space-y-4">
+        <div>
+          <label class="block text-gray-700 font-semibold">Nama Pengguna</label>
+          <input type="text" id="namaPengguna" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Email</label>
+          <input type="email" id="email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Nomor Telepon</label>
+          <input type="text" id="noTelepon" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="10-13 digit angka">
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Kata Sandi</label>
+          <input type="password" id="kataSandi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required minlength="8">
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Peran</label>
+          <select id="peran" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <option value="ketua">Ketua Kelas</option>
+            <option value="sekretaris">Sekretaris</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Program Studi</label>
+          <select id="idProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <option value="">Memuat Program Studi...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Kelas</label>
+          <select id="idKelas" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+            <option value="">Memuat Kelas...</option>
+          </select>
+        </div>
+        <div class="flex justify-between">
+          <button type="submit" id="createUserSubmitBtn" class="w-1/2 bg-blue-600 text-white font-semibold p-2 rounded-lg hover:bg-blue-700 mr-2">Simpan</button>
+          <a href="../dashboard/admin-dashboard.html" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400 text-center">Batal</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal untuk Edit User -->
+    <div id="editUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Edit User</h3>
+        <form id="editUserForm" class="space-y-4">
+          <input type="hidden" id="editUserId">
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Pengguna</label>
+            <input type="text" id="editNamaPengguna" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Email</label>
+            <input type="email" id="editEmail" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Nomor Telepon</label>
+            <input type="text" id="editNoTelepon" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="10-13 digit angka">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Peran</label>
+            <select id="editPeran" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="ketua">Ketua Kelas</option>
+              <option value="sekretaris">Sekretaris</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Program Studi</label>
+            <select id="editIdProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Memuat Program Studi...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Kelas</label>
+            <select id="editIdKelas" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Memuat Kelas...</option>
+            </select>
+          </div>
+          <div class="flex justify-between">
+            <button type="submit" id="editUserSubmitBtn" class="w-1/2 bg-blue-600 text-white font-semibold p-2 rounded-lg hover:bg-blue-700 mr-2">Simpan</button>
+            <button type="button" id="closeEditModalBtn" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Daftar User -->
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">Daftar User</h3>
+      <div id="errorMessage" class="text-red-500 text-center mb-4 hidden"></div>
+      <div class="overflow-x-auto">
+        <table class="w-full bg-white shadow rounded-lg">
+          <thead>
+            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <th class="py-3 px-6 text-left">Nama Pengguna</th>
+              <th class="py-3 px-6 text-left">Email</th>
+              <th class="py-3 px-6 text-left">Nomor Telepon</th>
+              <th class="py-3 px-6 text-left">Peran</th>
+              <th class="py-3 px-6 text-left">Kelas</th>
+              <th class="py-3 px-6 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="userTable" class="text-gray-600 text-sm font-light"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk memeriksa token
+    function checkToken() {
+      const token = localStorage.getItem("token");
+      if (!token || isTokenExpired(token)) {
+        alert("Sesi Anda telah berakhir. Silakan login kembali.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return false;
+      }
+      return true;
+    }
+
+    // Fungsi untuk mengecek apakah token kadaluarsa
+    function isTokenExpired(token) {
+      if (!token) {
+        console.error('Token tidak ditemukan di localStorage');
+        return true;
+      }
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.error('Format token tidak valid:', token);
+          return true;
+        }
+        const payload = JSON.parse(atob(parts[1]));
+        const isExpired = payload.exp < Date.now() / 1000;
+        if (isExpired) {
+          console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+        }
+        return isExpired;
+      } catch (error) {
+        console.error('Error saat memeriksa token:', error);
+        return true;
+      }
+    }
+
+    // Fungsi logout
+    function logout() {
+      const token = localStorage.getItem("token");
+      if (token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        alert("Anda telah logout.");
+        window.location.href = "../auth/login.html";
+      } else {
+        console.warn("Tidak ada token untuk logout.");
+        window.location.href = "../auth/login.html";
+      }
+    }
+
+    // Fungsi untuk menampilkan loading state pada tombol
+    function setLoadingState(button, isLoading) {
+      if (isLoading) {
+        button.disabled = true;
+        button.textContent = 'Menyimpan...';
+      } else {
+        button.disabled = false;
+        button.textContent = 'Simpan';
+      }
+    }
+
+    // Fungsi untuk mengambil data Prodi untuk dropdown
+    async function fetchProdi() {
+      if (!checkToken()) return;
+      const token = localStorage.getItem('token');
+      const prodiSelect = document.getElementById('idProdi');
+      const editProdiSelect = document.getElementById('editIdProdi');
+
+      // Show loading state
+      prodiSelect.disabled = true;
+      editProdiSelect.disabled = true;
+      prodiSelect.innerHTML = '<option value="">Memuat Program Studi...</option>';
+      editProdiSelect.innerHTML = '<option value="">Memuat Program Studi...</option>';
+
+      try {
+        const response = await fetch('http://localhost:3000/api/prodi', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data prodi');
+        }
+
+        const prodi = await response.json();
+        populateProdiDropdown(prodi);
+        populateEditProdiDropdown(prodi);
+      } catch (error) {
+        console.error('Error fetching prodi:', error);
+        alert('Gagal memuat data prodi: ' + error.message);
+        prodiSelect.innerHTML = '<option value="">Gagal memuat Program Studi</option>';
+        editProdiSelect.innerHTML = '<option value="">Gagal memuat Program Studi</option>';
+      } finally {
+        prodiSelect.disabled = false;
+        editProdiSelect.disabled = false;
+      }
+    }
+
+    // Fungsi untuk mengisi dropdown Prodi (form create)
+    function populateProdiDropdown(prodi) {
+      const select = document.getElementById('idProdi');
+      select.innerHTML = '<option value="">Pilih Program Studi...</option>';
+      if (prodi.length === 0) {
+        alert('Tidak ada data Program Studi tersedia. Silakan tambahkan Program Studi terlebih dahulu.');
+        return;
+      }
+      prodi.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id_prodi;
+        option.textContent = item.nama_prodi || 'N/A';
+        select.appendChild(option);
+      });
+    }
+
+    // Fungsi untuk mengisi dropdown Prodi (modal edit)
+    function populateEditProdiDropdown(prodi) {
+      const select = document.getElementById('editIdProdi');
+      select.innerHTML = '<option value="">Pilih Program Studi...</option>';
+      if (prodi.length === 0) {
+        alert('Tidak ada data Program Studi tersedia. Silakan tambahkan Program Studi terlebih dahulu.');
+        return;
+      }
+      prodi.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id_prodi;
+        option.textContent = item.nama_prodi || 'N/A';
+        select.appendChild(option);
+      });
+    }
+
+    // Fungsi untuk mengambil data kelas berdasarkan Prodi
+    async function fetchKelasByProdi(idProdi, targetDropdownId) {
+      if (!checkToken()) return;
+      const token = localStorage.getItem('token');
+      const kelasSelect = document.getElementById(targetDropdownId);
+
+      // Show loading state
+      kelasSelect.disabled = true;
+      kelasSelect.innerHTML = '<option value="">Memuat Kelas...</option>';
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/prodi/kelas?id_prodi=${idProdi}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data kelas');
+        }
+
+        const kelas = await response.json();
+        populateKelasDropdown(kelas, targetDropdownId);
+      } catch (error) {
+        console.error('Error fetching kelas:', error);
+        alert('Gagal memuat data kelas: ' + error.message);
+        kelasSelect.innerHTML = '<option value="">Gagal memuat Kelas</option>';
+      }
+    }
+
+    // Fungsi untuk mengisi dropdown kelas
+    function populateKelasDropdown(kelas, targetDropdownId) {
+      const select = document.getElementById(targetDropdownId);
+      select.innerHTML = '<option value="">Pilih Kelas...</option>';
+      select.disabled = kelas.length === 0; // Disable jika tidak ada kelas
+      kelas.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id_kelas;
+        option.textContent = item.nama_kelas || 'N/A';
+        select.appendChild(option);
+      });
+    }
+
+    // Fungsi untuk membuat user baru
+    async function createUser() {
+      if (!checkToken()) return;
+      const token = localStorage.getItem('token');
+      console.log('Token from localStorage:', token);
+
+      const namaPengguna = document.getElementById('namaPengguna').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const noTelepon = document.getElementById('noTelepon').value.trim();
+      const kataSandi = document.getElementById('kataSandi').value;
+      const peran = document.getElementById('peran').value;
+      const idProdi = document.getElementById('idProdi').value;
+      const idKelas = document.getElementById('idKelas').value;
+
+      // Validasi tambahan di frontend
+      if (!namaPengguna || !email || !noTelepon || !kataSandi || !peran || !idProdi || !idKelas) {
+        alert('Semua field harus diisi!');
+        return;
+      }
+
+      // Sanitize namaPengguna (allow only alphanumeric and spaces)
+      if (!/^[a-zA-Z0-9\s]+$/.test(namaPengguna)) {
+        alert('Nama pengguna hanya boleh berisi huruf, angka, dan spasi!');
+        return;
+      }
+
+      // Validate email format more strictly
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Format email tidak valid!');
+        return;
+      }
+
+      if (!/^[0-9]{10,13}$/.test(noTelepon)) {
+        alert('Nomor telepon harus terdiri dari 10-13 digit angka!');
+        return;
+      }
+
+      if (kataSandi.length < 8) {
+        alert('Kata sandi harus minimal 8 karakter!');
+        return;
+      }
+
+      const submitBtn = document.getElementById('createUserSubmitBtn');
+      setLoadingState(submitBtn, true);
+
+      try {
+        const response = await fetch('http://localhost:3000/api/auth/register-by-admin', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nama_pengguna: namaPengguna,
+            email,
+            no_telepon: noTelepon,
+            kata_sandi: kataSandi,
+            peran,
+            id_kelas: idKelas,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal membuat user');
+        }
+
+        const responseData = await response.json();
+        alert('User berhasil dibuat: ' + responseData.message);
+        if (confirm('Apakah Anda ingin mengosongkan formulir untuk membuat user baru?')) {
+          document.getElementById('createUserForm').reset();
+          document.getElementById('idKelas').disabled = true; // Reset dropdown Kelas
+        }
+        fetchUsers(); // Refresh daftar user
+      } catch (error) {
+        console.error('Error creating user:', error);
+        alert('Gagal membuat user: ' + error.message);
+      } finally {
+        setLoadingState(submitBtn, false);
+      }
+    }
+
+    // Fungsi untuk mengambil daftar user
+    async function fetchUsers() {
+      if (!checkToken()) return;
+      const token = localStorage.getItem("token");
+      const errorMessageDiv = document.getElementById("errorMessage");
+
+      try {
+        console.log('Fetching users from: http://localhost:3000/api/users');
+        const response = await fetch('http://localhost:3000/api/users', {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            alert(error.message || "Akses ditolak. Silakan login ulang.");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          errorMessageDiv.textContent = `Gagal mengambil daftar user: ${error.message || 'Terjadi kesalahan pada server.'}`;
+          errorMessageDiv.classList.remove("hidden");
+          throw new Error(`HTTP error! Status: ${response.status} - ${error.message || 'Unknown error'}`);
+        }
+
+        errorMessageDiv.classList.add("hidden");
+        const users = await response.json();
+        console.log('Users fetched:', users);
+        displayUsers(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        errorMessageDiv.textContent = `Gagal mengambil daftar user: ${error.message}. Silakan coba lagi nanti.`;
+        errorMessageDiv.classList.remove("hidden");
+        displayUsers([]);
+      }
+    }
+
+    // Fungsi untuk menampilkan daftar user
+    function displayUsers(users) {
+      const tbody = document.getElementById("userTable");
+      tbody.innerHTML = "";
+      if (users.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="6" class="py-3 px-6 text-center text-gray-500">Tidak ada user tersedia.</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+
+      users.forEach((user) => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-100";
+        row.innerHTML = `
+          <td class="py-3 px-6">${user.nama_pengguna || "N/A"}</td>
+          <td class="py-3 px-6">${user.email || "N/A"}</td>
+          <td class="py-3 px-6">${user.no_telepon || "N/A"}</td>
+          <td class="py-3 px-6">${user.peran || "N/A"}</td>
+          <td class="py-3 px-6">${user.nama_kelas || "N/A"}</td>
+          <td class="py-3 px-6 text-center">
+            <button data-id="${user.id_pengguna}" class="editButton text-blue-500 hover:underline mr-2">Edit</button>
+            <button data-id="${user.id_pengguna}" class="deleteButton text-red-500 hover:underline">Hapus</button>
+          </td>
+        `;
+        row.dataset.user = JSON.stringify(user);
+        tbody.appendChild(row);
+      });
+
+      document.querySelectorAll(".editButton").forEach((button) => {
+        button.addEventListener("click", function () {
+          const user = JSON.parse(this.parentElement.parentElement.dataset.user);
+          console.log('Editing user:', user);
+          openEditModal(user);
+        });
+      });
+
+      document.querySelectorAll(".deleteButton").forEach((button) => {
+        button.addEventListener("click", async function () {
+          const id = this.getAttribute("data-id");
+          if (!id) {
+            alert('ID user tidak ditemukan!');
+            return;
+          }
+          if (confirm("Apakah Anda yakin ingin menghapus user ini?")) {
+            try {
+              const token = localStorage.getItem("token");
+              console.log(`Deleting user with ID: ${id}`);
+              const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` },
+              });
+              if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`HTTP error! Status: ${response.status} - ${error.message || 'Unknown error'}`);
+              }
+              alert("User berhasil dihapus!");
+              fetchUsers();
+            } catch (error) {
+              console.error("Error deleting user:", error);
+              alert("Gagal menghapus user: " + error.message);
+            }
+          }
+        });
+      });
+    }
+
+    // Fungsi untuk membuka modal edit
+    async function openEditModal(user) {
+      if (!user || !user.id_pengguna) {
+        alert('Data user tidak valid!');
+        return;
+      }
+      document.getElementById("editUserId").value = user.id_pengguna;
+      document.getElementById("editNamaPengguna").value = user.nama_pengguna || '';
+      document.getElementById("editEmail").value = user.email || '';
+      document.getElementById("editNoTelepon").value = user.no_telepon || '';
+      document.getElementById("editPeran").value = user.peran || 'ketua';
+
+      // Fetch the Prodi ID for the user's class
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:3000/api/kelas`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data kelas');
+        }
+
+        const kelas = await response.json();
+        const userKelas = kelas.find(k => k.id_kelas == user.id_kelas);
+        const idProdi = userKelas ? userKelas.id_prodi : '';
+        document.getElementById("editIdProdi").value = idProdi;
+
+        // Fetch and populate Kelas dropdown based on Prodi
+        if (idProdi) {
+          await fetchKelasByProdi(idProdi, 'editIdKelas');
+          document.getElementById("editIdKelas").value = user.id_kelas || '';
+        }
+      } catch (error) {
+        console.error('Error fetching kelas for edit modal:', error);
+        alert('Gagal memuat data kelas untuk edit: ' + error.message);
+      }
+
+      document.getElementById("editUserModal").classList.remove("hidden");
+    }
+
+    // Fungsi untuk menutup modal edit
+    function closeEditModal() {
+      document.getElementById("editUserModal").classList.add("hidden");
+      document.getElementById("editUserForm").reset();
+      document.getElementById("editIdKelas").disabled = true;
+    }
+
+    // Fungsi untuk mengupdate user
+    async function updateUser() {
+      if (!checkToken()) return;
+      const token = localStorage.getItem("token");
+
+      const id = document.getElementById("editUserId").value;
+      const namaPengguna = document.getElementById("editNamaPengguna").value.trim();
+      const email = document.getElementById("editEmail").value.trim().toLowerCase();
+      const noTelepon = document.getElementById("editNoTelepon").value.trim();
+      const peran = document.getElementById("editPeran").value;
+      const idProdi = document.getElementById("editIdProdi").value;
+      const idKelas = document.getElementById("editIdKelas").value;
+
+      if (!id) {
+        alert('ID user tidak ditemukan!');
+        return;
+      }
+
+      if (!namaPengguna || !email || !noTelepon || !peran || !idProdi || !idKelas) {
+        alert('Semua field harus diisi!');
+        return;
+      }
+
+      // Sanitize namaPengguna (allow only alphanumeric and spaces)
+      if (!/^[a-zA-Z0-9\s]+$/.test(namaPengguna)) {
+        alert('Nama pengguna hanya boleh berisi huruf, angka, dan spasi!');
+        return;
+      }
+
+      // Validate email format more strictly
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Format email tidak valid!');
+        return;
+      }
+
+      if (!/^[0-9]{10,13}$/.test(noTelepon)) {
+        alert('Nomor telepon harus terdiri dari 10-13 digit angka!');
+        return;
+      }
+
+      const submitBtn = document.getElementById("editUserSubmitBtn");
+      setLoadingState(submitBtn, true);
+
+      try {
+        console.log(`Updating user with ID: ${id}`);
+        const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nama_pengguna: namaPengguna,
+            email,
+            no_telepon: noTelepon,
+            peran,
+            id_kelas: idKelas,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengupdate user');
+        }
+
+        const responseData = await response.json();
+        alert('User berhasil diperbarui: ' + responseData.message);
+        closeEditModal();
+        fetchUsers();
+      } catch (error) {
+        console.error('Error updating user:', error);
+        alert('Gagal mengupdate user: ' + error.message);
+      } finally {
+        setLoadingState(submitBtn, false);
+      }
+    }
+
+    // Dropdown menu toggle
+    function toggleDropdown() {
+      const dropdown = document.getElementById("dropdownMenu");
+      dropdown.classList.toggle("hidden");
+    }
+
+    // Tutup dropdown jika klik di luar
+    document.addEventListener("click", function(event) {
+      const dropdown = document.getElementById("dropdownMenu");
+      const dropdownButton = document.getElementById("dropdownButton");
+      if (!dropdownButton.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.add("hidden");
+      }
+    });
+
+    // Inisialisasi saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+
+      console.log('Token dari localStorage:', token);
+      console.log('Peran dari localStorage:', peran);
+
+      if (!token || isTokenExpired(token)) {
+        alert("Sesi Anda telah berakhir. Silakan login kembali.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      if (peran !== "admin") {
+        alert("Akses ditolak. Halaman ini hanya untuk admin.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      document.getElementById("dropdownButton").addEventListener("click", toggleDropdown);
+      fetchProdi(); // Ambil data Prodi untuk dropdown
+      fetchUsers(); // Ambil daftar user
+
+      // Event listener untuk form create user
+      document.getElementById('createUserForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        createUser();
+      });
+
+      // Event listener untuk form edit user
+      document.getElementById('editUserForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        updateUser();
+      });
+
+      // Event listener untuk tombol tutup modal edit
+      document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
+
+      // Event listener untuk dropdown Prodi (create form)
+      document.getElementById('idProdi').addEventListener('change', async (e) => {
+        const idProdi = e.target.value;
+        const kelasDropdown = document.getElementById('idKelas');
+        if (idProdi) {
+          await fetchKelasByProdi(idProdi, 'idKelas');
+          kelasDropdown.disabled = false;
+        } else {
+          kelasDropdown.innerHTML = '<option value="">Pilih Kelas...</option>';
+          kelasDropdown.disabled = true;
+        }
+      });
+
+      // Event listener untuk dropdown Prodi (edit form)
+      document.getElementById('editIdProdi').addEventListener('change', async (e) => {
+        const idProdi = e.target.value;
+        const kelasDropdown = document.getElementById('editIdKelas');
+        if (idProdi) {
+          await fetchKelasByProdi(idProdi, 'editIdKelas');
+          kelasDropdown.disabled = false;
+        } else {
+          kelasDropdown.innerHTML = '<option value="">Pilih Kelas...</option>';
+          kelasDropdown.disabled = true;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

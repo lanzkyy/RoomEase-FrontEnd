@@ -1,0 +1,438 @@
+<!-- admin/ruangan.html -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruangan - RoomEase Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase Admin</h1>
+    <ul class="flex space-x-4">
+      <li><a href="../dashboard/admin-dashboard.html" class="hover:bg-blue-500 p-2 rounded-lg">Dashboard</a></li>
+      <li><a href="jadwal.html" class="hover:bg-blue-500 p-2 rounded-lg">Jadwal</a></li>
+      <li><a href="ruangan.html" class="bg-blue-500 p-2 rounded-lg">Ruangan</a></li>
+      <li><a href="dosen.html" class="hover:bg-blue-500 p-2 rounded-lg">Dosen</a></li>
+      <li><a href="matakuliah.html" class="hover:bg-blue-500 p-2 rounded-lg">Mata Kuliah</a></li>
+      <li><a href="kelas.html" class="hover:bg-blue-500 p-2 rounded-lg">Kelas</a></li>
+      <li><a href="CreateUser.html" class="hover:bg-blue-500 p-2 rounded-lg">User</a></li>
+    </ul>
+    <div>
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+        <span id="profileInitials">Admin</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">Daftar Ruangan</h2>
+    <button id="addRuanganBtn" class="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Tambah Ruangan</button>
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white shadow rounded-lg">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">ID Ruangan</th>
+            <th class="py-3 px-6 text-left">Nama Ruangan</th>
+            <th class="py-3 px-6 text-left">Lokasi</th>
+            <th class="py-3 px-6 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="ruanganTable" class="text-gray-600 text-sm font-light"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal Tambah Ruangan -->
+    <div id="addRuanganModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Tambah Ruangan</h3>
+        <form id="addRuanganForm" class="mt-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Nama Ruangan</label>
+            <input type="text" id="namaRuangan" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Lokasi</label>
+            <select id="lokasi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="" disabled selected>Pilih Lokasi</option>
+              <option value="Gedung Lama Lantai 1">Gedung Lama Lantai 1</option>
+              <option value="Gedung Lama Lantai 2">Gedung Lama Lantai 2</option>
+              <option value="Gedung Baru Lantai 2">Gedung Baru Lantai 2</option>
+              <option value="Gedung Baru Lantai 3">Gedung Baru Lantai 3</option>
+              <option value="Gedung Baru Lantai 4">Gedung Baru Lantai 4</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelAddRuanganBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-3 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Edit Ruangan -->
+    <div id="editRuanganModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Edit Ruangan</h3>
+        <form id="editRuanganForm" class="mt-4">
+          <input type="hidden" id="editRuanganId">
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Nama Ruangan</label>
+            <input type="text" id="editNamaRuangan" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Lokasi</label>
+            <select id="editLokasi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="" disabled selected>Pilih Lokasi</option>
+              <option value="Gedung Lama Lantai 1">Gedung Lama Lantai 1</option>
+              <option value="Gedung Lama Lantai 2">Gedung Lama Lantai 2</option>
+              <option value="Gedung Baru Lantai 2">Gedung Baru Lantai 2</option>
+              <option value="Gedung Baru Lantai 3">Gedung Baru Lantai 3</option>
+              <option value="Gedung Baru Lantai 4">Gedung Baru Lantai 4</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelEditRuanganBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-3 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk memeriksa token
+    function isTokenExpired(token) {
+      if (!token) {
+        console.error('Token tidak ditemukan di localStorage');
+        return true;
+      }
+
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.error('Format token tidak valid:', token);
+          return true;
+        }
+
+        const payload = JSON.parse(atob(parts[1]));
+        const isExpired = payload.exp < Date.now() / 1000;
+        if (isExpired) {
+          console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+        }
+        return isExpired;
+      } catch (error) {
+        console.error('Error saat memeriksa token:', error);
+        return true;
+      }
+    }
+
+    // Fungsi untuk mengambil data ruangan
+    async function fetchRuangan() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        console.log('Mengambil data ruangan dari server...');
+        const response = await fetch('http://localhost:3000/api/ruangan', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data ruangan');
+        }
+        const ruangans = await response.json();
+        console.log('Data ruangan diterima:', ruangans);
+        displayRuangan(ruangans);
+      } catch (error) {
+        console.error('Error fetching ruangan:', error);
+        alert(error.message);
+        displayRuangan([]);
+      }
+    }
+
+    // Fungsi untuk menampilkan ruangan
+    function displayRuangan(ruangans) {
+      const tbody = document.getElementById("ruanganTable");
+      tbody.innerHTML = "";
+      if (ruangans.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="4" class="py-3 px-6 text-center text-gray-500">Tidak ada data ruangan.</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      ruangans.forEach((ruangan) => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-100";
+        row.innerHTML = `
+          <td class="py-3 px-6">${ruangan.id_ruangan || 'N/A'}</td>
+          <td class="py-3 px-6">${ruangan.nama_ruangan || 'N/A'}</td>
+          <td class="py-3 px-6">${ruangan.lokasi || 'N/A'}</td>
+          <td class="py-3 px-6">
+            <button data-id="${ruangan.id_ruangan}" data-nama="${ruangan.nama_ruangan}" data-lokasi="${ruangan.lokasi}" class="editRuanganBtn bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2">Edit</button>
+            <button onclick="deleteRuangan(${ruangan.id_ruangan})" class="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // Tambahkan event listener untuk tombol Edit
+      document.querySelectorAll(".editRuanganBtn").forEach((button) => {
+        button.addEventListener("click", function () {
+          const id = this.getAttribute("data-id");
+          const nama = this.getAttribute("data-nama");
+          const lokasi = this.getAttribute("data-lokasi");
+          editRuangan(id, nama, lokasi);
+        });
+      });
+    }
+
+    // Fungsi untuk menambah ruangan
+    async function addRuangan(nama, lokasi) {
+      console.log('Fungsi addRuangan dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        console.log('Mengirim request POST ke /api/ruangan');
+        const response = await fetch('http://localhost:3000/api/ruangan', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_ruangan: nama, lokasi }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal menambahkan ruangan');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchRuangan(); // Refresh daftar
+        document.getElementById('addRuanganModal').classList.add('hidden');
+        document.getElementById('addRuanganForm').reset();
+        alert('Ruangan berhasil ditambahkan!');
+      } catch (error) {
+        console.error('Error adding ruangan:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert(error.message);
+        }
+      }
+    }
+
+    // Fungsi untuk mengedit ruangan
+    async function updateRuangan(id, nama, lokasi) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/ruangan/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_ruangan: nama, lokasi }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal memperbarui ruangan');
+        }
+        await fetchRuangan(); // Refresh daftar
+        document.getElementById('editRuanganModal').classList.add('hidden');
+        alert('Ruangan berhasil diperbarui!');
+      } catch (error) {
+        console.error('Error updating ruangan:', error);
+        alert(error.message);
+      }
+    }
+
+    // Fungsi untuk menghapus ruangan
+    async function deleteRuangan(id) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      if (confirm('Apakah Anda yakin ingin menghapus ruangan ini?')) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/ruangan/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            if (response.status === 401 || response.status === 403) {
+              alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+              localStorage.removeItem("token");
+              localStorage.removeItem("nama_pengguna");
+              localStorage.removeItem("email");
+              localStorage.removeItem("peran");
+              localStorage.removeItem("id_kelas");
+              window.location.href = "../auth/login.html";
+              return;
+            }
+            throw new Error(errorData.message || 'Gagal menghapus ruangan');
+          }
+          await fetchRuangan(); // Refresh daftar
+          alert('Ruangan berhasil dihapus!');
+        } catch (error) {
+          console.error('Error deleting ruangan:', error);
+          alert(error.message);
+        }
+      }
+    }
+
+    // Fungsi untuk membuka modal edit
+    function editRuangan(id, nama, lokasi) {
+      console.log('editRuangan dipanggil:', { id, nama, lokasi });
+      document.getElementById('editRuanganId').value = id;
+      document.getElementById('editNamaRuangan').value = nama;
+      document.getElementById('editLokasi').value = lokasi;
+      document.getElementById('editRuanganModal').classList.remove('hidden');
+    }
+
+    // Fungsi untuk membuka modal tambah
+    document.getElementById('addRuanganBtn').addEventListener('click', () => {
+      console.log('Tombol Tambah Ruangan diklik');
+      document.getElementById('addRuanganModal').classList.remove('hidden');
+    });
+
+    // Fungsi untuk menyimpan data tambah
+    document.getElementById('addRuanganForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      console.log('Form Tambah Ruangan disubmit');
+      const nama = document.getElementById('namaRuangan').value;
+      const lokasi = document.getElementById('lokasi').value;
+      console.log('Data yang akan dikirim:', { nama, lokasi });
+      addRuangan(nama, lokasi);
+    });
+
+    // Fungsi untuk menyimpan data edit
+    document.getElementById('editRuanganForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editRuanganId').value;
+      const nama = document.getElementById('editNamaRuangan').value;
+      const lokasi = document.getElementById('editLokasi').value;
+      updateRuangan(id, nama, lokasi);
+    });
+
+    // Fungsi untuk batal
+    document.getElementById('cancelAddRuanganBtn').addEventListener('click', () => {
+      document.getElementById('addRuanganModal').classList.add('hidden');
+      document.getElementById('addRuanganForm').reset();
+    });
+
+    document.getElementById('cancelEditRuanganBtn').addEventListener('click', () => {
+      document.getElementById('editRuanganModal').classList.add('hidden');
+    });
+
+    // Load data ruangan saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+
+      console.log('Token dari localStorage:', token);
+      console.log('Peran dari localStorage:', peran);
+
+      if (!token || isTokenExpired(token)) {
+        alert("Sesi Anda telah berakhir. Silakan login kembali.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      if (peran !== "admin") {
+        alert("Akses ditolak. Halaman ini hanya untuk admin.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      fetchRuangan();
+    });
+  </script>
+</body>
+</html>

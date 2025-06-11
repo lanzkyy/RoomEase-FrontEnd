@@ -1,0 +1,1041 @@
+<!-- admin/jadwal.html -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal - RoomEase Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase Admin</h1>
+    <ul class="flex space-x-4">
+      <li><a href="../dashboard/admin-dashboard.html" class="hover:bg-blue-500 p-2 rounded-lg">Dashboard</a></li>
+      <li><a href="jadwal.html" class="bg-blue-700 p-2 rounded-lg">Jadwal</a></li>
+      <li><a href="ruangan.html" class="hover:bg-blue-500 p-2 rounded-lg">Ruangan</a></li>
+      <li><a href="dosen.html" class="hover:bg-blue-500 p-2 rounded-lg">Dosen</a></li>
+      <li><a href="matakuliah.html" class="hover:bg-blue-500 p-2 rounded-lg">Mata Kuliah</a></li>
+      <li><a href="kelas.html" class="hover:bg-blue-500 p-2 rounded-lg">Kelas</a></li>
+      <li><a href="CreateUser.html" class="hover:bg-blue-500 p-2 rounded-lg">User</a></li>
+    </ul>
+    <div class="relative">
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full hover:bg-gray-400">
+        <span id="profileInitials">Admin</span>
+      </button>
+      <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-2 text-black">
+        <a href="#" id="logoutBtn" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">Daftar Jadwal</h2>
+    <div class="flex justify-between items-center mb-4 space-x-4">
+      <input type="date" id="jadwalDate" class="p-2 border rounded-lg" onchange="fetchJadwal()">
+      <button id="addJadwalBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Tambah Jadwal</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white shadow rounded-lg">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">Kelas</th>
+            <th class="py-3 px-6 text-left">Mata Kuliah</th>
+            <th class="py-3 px-6 text-left">Dosen</th>
+            <th class="py-3 px-6 text-left">Ruangan</th>
+            <th class="py-3 px-6 text-left">Hari</th>
+            <th class="py-3 px-6 text-left">Jam</th>
+            <th class="py-3 px-6 text-left">Status</th>
+            <th class="py-3 px-6 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="jadwalTable" class="text-gray-600 text-sm font-light"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal Tambah Jadwal -->
+    <div id="addJadwalModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Tambah Jadwal</h3>
+        <p class="text-sm text-gray-600 mb-4">Silakan isi Hari, Jam Mulai, dan Jam Selesai terlebih dahulu untuk memeriksa ketersediaan ruangan.</p>
+        <form id="addJadwalForm" class="space-y-4">
+          <div>
+            <label class="block text-gray-700 font-semibold">Hari</label>
+            <select id="hari" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="checkTimeFields('add')">
+              <option value="">Pilih Hari</option>
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Sabtu">Sabtu</option>
+              <option value="Minggu">Minggu</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Jam Mulai</label>
+            <input type="time" id="jamMulai" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="checkTimeFields('add')">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Jam Selesai</label>
+            <input type="time" id="jamSelesai" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="checkTimeFields('add')">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Kelas</label>
+            <select id="idKelas" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="filterDropdowns('add')" disabled>
+              <option value="">Pilih Kelas</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Mata Kuliah</label>
+            <select id="idMatkul" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Pilih Mata Kuliah</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Program Studi Dosen</label>
+            <select id="idProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="filterDosen('add')" disabled>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Dosen</label>
+            <select id="idDosen" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Pilih Dosen</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Ruangan</label>
+            <select id="idRuangan" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Pilih Ruangan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Status</label>
+            <select id="status" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="Masuk">Masuk</option>
+              <option value="Libur">Libur</option>
+              <option value="Tunda">Tunda</option>
+            </select>
+          </div>
+          <div class="flex justify-between">
+            <button type="submit" id="addJadwalSubmitBtn" class="w-1/2 bg-blue-600 text-white font-semibold p-2 rounded-lg hover:bg-blue-700 mr-2">Simpan</button>
+            <button type="button" id="cancelAddJadwalBtn" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Edit Jadwal -->
+    <div id="editJadwalModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Edit Jadwal</h3>
+        <p class="text-sm text-gray-600 mb-4">Silakan isi Hari, Jam Mulai, dan Jam Selesai terlebih dahulu untuk memeriksa ketersediaan ruangan.</p>
+        <form id="editJadwalForm" class="space-y-4">
+          <input type="hidden" id="editJadwalId">
+          <div>
+            <label class="block text-gray-700 font-semibold">Hari</label>
+            <select id="editHari" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="checkTimeFields('edit')">
+              <option value="">Pilih Hari</option>
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Sabtu">Sabtu</option>
+              <option value="Minggu">Minggu</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Jam Mulai</label>
+            <input type="time" id="editJamMulai" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="checkTimeFields('edit')">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Jam Selesai</label>
+            <input type="time" id="editJamSelesai" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="checkTimeFields('edit')">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Kelas</label>
+            <select id="editIdKelas" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="filterDropdowns('edit')" disabled>
+              <option value="">Pilih Kelas</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Mata Kuliah</label>
+            <select id="editIdMatkul" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Pilih Mata Kuliah</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Program Studi Dosen</label>
+            <select id="editIdProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required onchange="filterDosen('edit')" disabled>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Dosen</label>
+            <select id="editIdDosen" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Pilih Dosen</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Ruangan</label>
+            <select id="editIdRuangan" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+              <option value="">Pilih Ruangan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Status</label>
+            <select id="editStatus" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="Masuk">Masuk</option>
+              <option value="Libur">Libur</option>
+              <option value="Tunda">Tunda</option>
+            </select>
+          </div>
+          <div class="flex justify-between">
+            <button type="submit" id="editJadwalSubmitBtn" class="w-1/2 bg-blue-600 text-white font-semibold p-2 rounded-lg hover:bg-blue-700 mr-2">Simpan</button>
+            <button type="button" id="cancelEditJadwalBtn" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Ubah Status Jadwal -->
+    <div id="updateStatusModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Ubah Status Jadwal</h3>
+        <form id="updateStatusForm" class="space-y-4">
+          <input type="hidden" id="updateStatusJadwalId">
+          <div>
+            <label class="block text-gray-700 font-semibold">Status</label>
+            <select id="updateStatus" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="Masuk">Masuk</option>
+              <option value="Libur">Libur</option>
+              <option value="Tunda">Tunda</option>
+            </select>
+          </div>
+          <div class="flex justify-between">
+            <button type="submit" id="updateStatusSubmitBtn" class="w-1/2 bg-blue-600 text-white font-semibold p-2 rounded-lg hover:bg-blue-700 mr-2">Simpan</button>
+            <button type="button" id="cancelUpdateStatusBtn" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk memeriksa token
+    function isTokenExpired(token) {
+      if (!token) {
+        console.error('Token tidak ditemukan di localStorage');
+        return true;
+      }
+
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.error('Format token tidak valid:', token);
+          return true;
+        }
+
+        const payload = JSON.parse(atob(parts[1]));
+        const isExpired = payload.exp < Date.now() / 1000;
+        if (isExpired) {
+          console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+        }
+        return isExpired;
+      } catch (error) {
+        console.error('Error saat memeriksa token:', error);
+        return true;
+      }
+    }
+
+    // Fungsi logout
+    function logout() {
+      const token = localStorage.getItem("token");
+      if (token && !isTokenExpired(token)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        alert("Anda telah logout.");
+        window.location.href = "../auth/login.html";
+      }
+    }
+
+    // Fungsi untuk menampilkan loading state pada tombol
+    function setLoadingState(button, isLoading) {
+      if (isLoading) {
+        button.disabled = true;
+        button.textContent = 'Menyimpan...';
+      } else {
+        button.disabled = false;
+        button.textContent = 'Simpan';
+      }
+    }
+
+    // Fungsi untuk memvalidasi format waktu (HH:mm)
+    function validateTimeFormat(time) {
+      if (!time) return false;
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      return timeRegex.test(time);
+    }
+
+    // Fungsi untuk mengatur tanggal default ke hari ini
+    function updateDateTime() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('jadwalDate').value = today;
+      fetchJadwal();
+    }
+
+    // Fungsi untuk memeriksa apakah Hari, Jam Mulai, dan Jam Selesai sudah diisi
+    function checkTimeFields(mode = 'add') {
+      const hari = document.getElementById(mode === 'add' ? 'hari' : 'editHari').value;
+      const jamMulai = document.getElementById(mode === 'add' ? 'jamMulai' : 'editJamMulai').value;
+      const jamSelesai = document.getElementById(mode === 'add' ? 'jamSelesai' : 'editJamSelesai').value;
+
+      const idKelasSelect = document.getElementById(mode === 'add' ? 'idKelas' : 'editIdKelas');
+      const idProdiSelect = document.getElementById(mode === 'add' ? 'idProdi' : 'editIdProdi');
+      const idMatkulSelect = document.getElementById(mode === 'add' ? 'idMatkul' : 'editIdMatkul');
+      const idDosenSelect = document.getElementById(mode === 'add' ? 'idDosen' : 'editIdDosen');
+      const idRuanganSelect = document.getElementById(mode === 'add' ? 'idRuangan' : 'editIdRuangan');
+
+      if (hari && jamMulai && jamSelesai) {
+        if (!validateTimeFormat(jamMulai) || !validateTimeFormat(jamSelesai)) {
+          alert('Format jam tidak valid. Gunakan format HH:mm (misalnya 07:30).');
+          return;
+        }
+        if (jamMulai >= jamSelesai) {
+          alert('Jam mulai harus lebih awal dari jam selesai.');
+          return;
+        }
+
+        idKelasSelect.disabled = false;
+        idProdiSelect.disabled = false;
+        idMatkulSelect.disabled = false;
+        idDosenSelect.disabled = false;
+        idRuanganSelect.disabled = false;
+
+        updateAvailableRooms(mode);
+        fetchProdi(mode);
+      } else {
+        idKelasSelect.disabled = true;
+        idProdiSelect.disabled = true;
+        idMatkulSelect.disabled = true;
+        idDosenSelect.disabled = true;
+        idRuanganSelect.disabled = true;
+
+        populateDropdown(mode === 'add' ? 'idKelas' : 'editIdKelas', [], 'id_kelas', 'nama_kelas');
+        populateDropdown(mode === 'add' ? 'idProdi' : 'editIdProdi', [], 'id_prodi', 'nama_prodi');
+        populateDropdown(mode === 'add' ? 'idMatkul' : 'editIdMatkul', [], 'id_matkul', 'nama_matkul');
+        populateDropdown(mode === 'add' ? 'idDosen' : 'editIdDosen', [], 'id_dosen', 'nama_dosen');
+        populateDropdown(mode === 'add' ? 'idRuangan' : 'editIdRuangan', [], 'id_ruangan', 'nama_ruangan');
+      }
+    }
+
+    // Fungsi untuk mengambil data prodi
+    async function fetchProdi(mode = 'add') {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/prodi', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        }
+        const prodi = await response.json();
+        populateDropdown(mode === 'add' ? 'idProdi' : 'editIdProdi', prodi, 'id_prodi', 'nama_prodi');
+      } catch (error) {
+        console.error('Error fetching prodi:', error);
+        alert('Gagal memuat data prodi: ' + error.message);
+      }
+    }
+
+    // Fungsi untuk mengambil data jadwal
+    async function fetchJadwal() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const jadwalDateInput = document.getElementById("jadwalDate");
+      if (!jadwalDateInput.value) {
+        updateDateTime();
+        return;
+      }
+      const selectedDate = new Date(jadwalDateInput.value);
+      const hari = selectedDate.toLocaleString("id-ID", { weekday: "long" });
+
+      try {
+        const url = `http://localhost:3000/api/jadwal?hari=${encodeURIComponent(hari)}`;
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        }
+        const jadwals = await response.json();
+        displayJadwal(jadwals);
+      } catch (error) {
+        console.error('Error fetching jadwal:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal memuat jadwal: ' + error.message);
+        }
+        displayJadwal([]);
+      }
+    }
+
+    // Fungsi untuk mengambil data dropdown (kelas, ruangan)
+    async function fetchDropdownData(hari, jamMulai, jamSelesai) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        if (jamMulai && !validateTimeFormat(jamMulai)) {
+          throw new Error('Format jam_mulai tidak valid. Gunakan format HH:mm (misalnya 07:30).');
+        }
+        if (jamSelesai && !validateTimeFormat(jamSelesai)) {
+          throw new Error('Format jam_selesai tidak valid. Gunakan format HH:mm (misalnya 11:55).');
+        }
+
+        let ruanganUrl = 'http://localhost:3000/api/ruangan';
+        if (hari && jamMulai && jamSelesai) {
+          const dummyDate = "2025-01-01";
+          const dayIndex = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].indexOf(hari);
+          const baseDate = new Date(dummyDate);
+          baseDate.setDate(baseDate.getDate() + (dayIndex - baseDate.getDay() + 7) % 7);
+          const formattedDate = baseDate.toISOString().split("T")[0];
+          ruanganUrl = `http://localhost:3000/api/jadwal/available-rooms?hari=${encodeURIComponent(hari)}&jam_mulai=${encodeURIComponent(jamMulai)}&jam_selesai=${encodeURIComponent(jamSelesai)}&tanggal=${encodeURIComponent(formattedDate)}`;
+        }
+
+        const [kelasResp, ruanganResp] = await Promise.all([
+          fetch('http://localhost:3000/api/kelas', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(ruanganUrl, { headers: { 'Authorization': `Bearer ${token}` } }),
+        ]);
+
+        const responses = [
+          { resp: kelasResp, name: 'kelas' },
+          { resp: ruanganResp, name: 'ruangan' },
+        ];
+
+        for (const { resp, name } of responses) {
+          if (!resp.ok) {
+            const errorData = await resp.json();
+            if (name === 'ruangan' && hari && jamMulai && jamSelesai) {
+              alert('Gagal memfilter ruangan yang tersedia. Menampilkan semua ruangan sebagai alternatif.');
+              const fallbackResp = await fetch('http://localhost:3000/api/ruangan', {
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (!fallbackResp.ok) {
+                const fallbackError = await fallbackResp.json();
+                throw new Error(`Gagal mengambil data ruangan (fallback): ${fallbackError.message || fallbackResp.statusText}`);
+              }
+              responses[1].resp = fallbackResp;
+              continue;
+            }
+            throw new Error(`Gagal mengambil data ${name}: ${errorData.message || resp.statusText}`);
+          }
+        }
+
+        const [kelas, ruangans] = await Promise.all([
+          responses[0].resp.json(),
+          responses[1].resp.json(),
+        ]);
+
+        populateDropdown('idKelas', kelas, 'id_kelas', 'nama_kelas');
+        populateDropdown('editIdKelas', kelas, 'id_kelas', 'nama_kelas');
+        populateDropdown('idRuangan', ruangans, 'id_ruangan', 'nama_ruangan');
+        populateDropdown('editIdRuangan', ruangans, 'id_ruangan', 'nama_ruangan');
+
+        if (ruangans.length === 0 && hari && jamMulai && jamSelesai) {
+          alert('Tidak ada ruangan yang tersedia pada waktu tersebut.');
+        }
+      } catch (error) {
+        console.error('Error fetching dropdown data:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal memuat data dropdown: ' + error.message);
+        }
+      }
+    }
+
+// Fungsi validasi waktu (pastikan ada di kode Anda)
+function validateTimeFormat(time) {
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+  return timeRegex.test(time);
+}
+
+    // Fungsi untuk mengambil dan memfilter mata kuliah berdasarkan kelas
+    async function filterDropdowns(mode = 'add') {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const kelasId = document.getElementById(mode === 'add' ? 'idKelas' : 'editIdKelas').value;
+      if (!kelasId) {
+        populateDropdown(mode === 'add' ? 'idMatkul' : 'editIdMatkul', [], 'id_matkul', 'nama_matkul');
+        return;
+      }
+
+      try {
+        const kelasResponse = await fetch(`http://localhost:3000/api/kelas/${kelasId}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!kelasResponse.ok) {
+          const errorData = await kelasResponse.json();
+          throw new Error(`Gagal mengambil data kelas: ${errorData.message || kelasResponse.statusText}`);
+        }
+        const kelasData = await kelasResponse.json();
+        const idProdi = kelasData.id_prodi;
+        const semester = kelasData.semester;
+
+        const matkulResponse = await fetch(`http://localhost:3000/api/mata-kuliah?id_prodi=${idProdi}&semester=${semester}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!matkulResponse.ok) {
+          const errorData = await matkulResponse.json();
+          throw new Error(`Gagal mengambil data mata kuliah: ${errorData.message || matkulResponse.statusText}`);
+        }
+        const matkuls = await matkulResponse.json();
+
+        populateDropdown(mode === 'add' ? 'idMatkul' : 'editIdMatkul', matkuls, 'id_matkul', 'nama_matkul');
+      } catch (error) {
+        console.error('Error filtering dropdowns:', error);
+        alert('Gagal memfilter mata kuliah: ' + error.message);
+        populateDropdown(mode === 'add' ? 'idMatkul' : 'editIdMatkul', [], 'id_matkul', 'nama_matkul');
+      }
+    }
+
+    // Fungsi untuk memfilter dosen berdasarkan prodi yang dipilih
+    async function filterDosen(mode = 'add') {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const idProdi = document.getElementById(mode === 'add' ? 'idProdi' : 'editIdProdi').value;
+      if (!idProdi) {
+        populateDropdown(mode === 'add' ? 'idDosen' : 'editIdDosen', [], 'id_dosen', 'nama_dosen');
+        return;
+      }
+
+      try {
+        const dosenResponse = await fetch(`http://localhost:3000/api/dosen?prodi=${idProdi}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!dosenResponse.ok) {
+          const errorData = await dosenResponse.json();
+          throw new Error(`Gagal mengambil data dosen: ${errorData.message || dosenResponse.statusText}`);
+        }
+        const dosens = await dosenResponse.json();
+        console.log("Dosen yang diambil untuk prodi", idProdi, ":", dosens);
+
+        populateDropdown(mode === 'add' ? 'idDosen' : 'editIdDosen', dosens, 'id_dosen', 'nama_dosen');
+      } catch (error) {
+        console.error('Error fetching dosen:', error);
+        alert('Gagal memuat data dosen: ' + error.message);
+        populateDropdown(mode === 'add' ? 'idDosen' : 'editIdDosen', [], 'id_dosen', 'nama_dosen');
+      }
+    }
+
+    // Fungsi untuk memperbarui dropdown ruangan berdasarkan waktu dan hari
+    async function updateAvailableRooms(mode = 'add') {
+      const hari = document.getElementById(mode === 'add' ? 'hari' : 'editHari').value;
+      const jamMulai = document.getElementById(mode === 'add' ? 'jamMulai' : 'editJamMulai').value;
+      const jamSelesai = document.getElementById(mode === 'add' ? 'jamSelesai' : 'editJamSelesai').value;
+
+      if (hari && jamMulai && jamSelesai) {
+        await fetchDropdownData(hari, jamMulai, jamSelesai);
+      } else {
+        await fetchDropdownData();
+      }
+    }
+
+    // Fungsi untuk mengisi dropdown
+    function populateDropdown(id, data, valueKey, labelKey) {
+      const select = document.getElementById(id);
+      if (!select) {
+        console.error(`Elemen dengan ID ${id} tidak ditemukan.`);
+        return;
+      }
+      select.innerHTML = '<option value="">Pilih...</option>';
+      if (data.length === 0) {
+        select.innerHTML = '<option value="">Tidak ada data tersedia</option>';
+        return;
+      }
+      data.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item[valueKey];
+        option.textContent = item[labelKey] || 'N/A';
+        select.appendChild(option);
+      });
+    }
+
+    // Fungsi untuk menampilkan jadwal
+    function displayJadwal(jadwals) {
+    const tbody = document.getElementById("jadwalTable");
+    const peran = localStorage.getItem("peran");
+    tbody.innerHTML = "";
+    if (jadwals.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td colspan="8" class="py-3 px-6 text-center text-gray-500">Tidak ada jadwal untuk hari ini.</td>`;
+      tbody.appendChild(row);
+      return;
+    }
+    jadwals.forEach((jadwal) => {
+      const row = document.createElement("tr");
+      row.className = "border-b border-gray-200 hover:bg-gray-100";
+      const jadwalId = jadwal.id || jadwal.id_kelas_jadwal || 0; // Gunakan id_kelas_jadwal sebagai fallback
+      row.innerHTML = `
+        <td class="py-3 px-6">${jadwal.nama_kelas || 'N/A'}</td>
+        <td class="py-3 px-6">${jadwal.nama_matkul || 'N/A'}</td>
+        <td class="py-3 px-6">${jadwal.kode_dosen || 'N/A'}</td>
+        <td class="py-3 px-6">${jadwal.nama_ruangan || 'N/A'}</td>
+        <td class="py-3 px-6">${jadwal.hari || 'N/A'}</td>
+        <td class="py-3 px-6">${jadwal.jam_mulai || 'N/A'} - ${jadwal.jam_selesai || 'N/A'}</td>
+        <td class="py-3 px-6">${jadwal.status || 'N/A'}</td>
+        <td class="py-3 px-6">
+          ${peran === 'admin' ? `
+            <button data-id="${jadwalId}" data-id-kelas="${jadwal.id_kelas || 0}" data-id-matkul="${jadwal.id_matkul || 0}" data-id-dosen="${jadwal.id_dosen || 0}" data-id-ruangan="${jadwal.id_ruangan || 0}" data-hari="${jadwal.hari || ''}" data-jam-mulai="${jadwal.jam_mulai || ''}" data-jam-selesai="${jadwal.jam_selesai || ''}" data-status="${jadwal.status || ''}" class="editJadwalBtn bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2">Edit</button>
+            <button onclick="deleteJadwal(${jadwalId})" class="deleteJadwalBtn bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600">Hapus</button>
+          ` : ''}
+          ${peran === 'ketua' || peran === 'sekretaris' ? `
+            <button data-id="${jadwalId}" data-status="${jadwal.status || ''}" class="updateStatusBtn bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 mr-2">Ubah Status</button>
+          ` : ''}
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    document.querySelectorAll(".editJadwalBtn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const id = this.getAttribute("data-id");
+        const idKelas = this.getAttribute("data-id-kelas");
+        const idMatkul = this.getAttribute("data-id-matkul");
+        const idDosen = this.getAttribute("data-id-dosen");
+        const idRuangan = this.getAttribute("data-id-ruangan");
+        const hari = this.getAttribute("data-hari");
+        const jamMulai = this.getAttribute("data-jam-mulai");
+        const jamSelesai = this.getAttribute("data-jam-selesai");
+        const status = this.getAttribute("data-status");
+        editJadwal(id, idKelas, idMatkul, idDosen, idRuangan, hari, jamMulai, jamSelesai, status);
+      });
+    });
+
+    document.querySelectorAll(".updateStatusBtn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const id = this.getAttribute("data-id");
+        const status = this.getAttribute("data-status");
+        updateStatusJadwal(id, status);
+      });
+    });
+  }
+
+    // Fungsi untuk menambah jadwal
+    async function addJadwal() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const idKelas = document.getElementById('idKelas').value;
+      const idMatkul = document.getElementById('idMatkul').value;
+      const idDosen = document.getElementById('idDosen').value;
+      const idRuangan = document.getElementById('idRuangan').value;
+      const hari = document.getElementById('hari').value;
+      const jamMulai = document.getElementById('jamMulai').value;
+      const jamSelesai = document.getElementById('jamSelesai').value;
+      const status = document.getElementById('status').value;
+
+      if (!idKelas || !idMatkul || !idDosen || !idRuangan || !hari || !jamMulai || !jamSelesai || !status) {
+        alert('Semua kolom wajib diisi.');
+        return;
+      }
+
+      if (jamMulai >= jamSelesai) {
+        alert('Jam mulai harus lebih awal dari jam selesai.');
+        return;
+      }
+
+      const dummyDate = "2025-01-01";
+      const dayIndex = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].indexOf(hari);
+      const baseDate = new Date(dummyDate);
+      baseDate.setDate(baseDate.getDate() + (dayIndex - baseDate.getDay() + 7) % 7);
+      const formattedDate = baseDate.toISOString().split("T")[0];
+
+      setLoadingState(document.getElementById('addJadwalSubmitBtn'), true);
+      try {
+        const response = await fetch('http://localhost:3000/api/jadwal', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id_kelas: idKelas, id_matkul: idMatkul, id_dosen: idDosen, id_ruangan: idRuangan, hari, jam_mulai: jamMulai, jam_selesai: jamSelesai, status, tanggal: formattedDate }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        }
+        alert('Jadwal berhasil ditambahkan.');
+        closeModal('addJadwalModal');
+        fetchJadwal();
+      } catch (error) {
+        console.error('Error adding jadwal:', error);
+        alert('Gagal menambahkan jadwal: ' + error.message);
+      } finally {
+        setLoadingState(document.getElementById('addJadwalSubmitBtn'), false);
+      }
+    }
+
+    // Fungsi untuk mengedit jadwal
+    async function editJadwal(id, idKelas, idMatkul, idDosen, idRuangan, hari, jamMulai, jamSelesai, status) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      document.getElementById('editJadwalId').value = id;
+      document.getElementById('editHari').value = hari;
+      document.getElementById('editJamMulai').value = jamMulai;
+      document.getElementById('editJamSelesai').value = jamSelesai;
+      document.getElementById('editStatus').value = status;
+
+      document.getElementById('editIdKelas').disabled = false;
+      document.getElementById('editIdProdi').disabled = false;
+      document.getElementById('editIdMatkul').disabled = false;
+      document.getElementById('editIdDosen').disabled = false;
+      document.getElementById('editIdRuangan').disabled = false;
+
+      await fetchDropdownData(hari, jamMulai, jamSelesai);
+      await fetchProdi('edit');
+      document.getElementById('editIdKelas').value = idKelas;
+      await filterDropdowns('edit');
+      document.getElementById('editIdMatkul').value = idMatkul;
+
+      // Ambil prodi dari dosen yang dipilih
+      const dosenResponse = await fetch(`http://localhost:3000/api/dosen/${idDosen}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (dosenResponse.ok) {
+        const dosenData = await dosenResponse.json();
+        document.getElementById('editIdProdi').value = dosenData.id_prodi;
+        await filterDosen('edit');
+        document.getElementById('editIdDosen').value = idDosen;
+      }
+
+      document.getElementById('editIdRuangan').value = idRuangan;
+
+      openModal('editJadwalModal');
+    }
+
+    // Fungsi untuk menyimpan perubahan jadwal
+    async function saveEditedJadwal() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const id = document.getElementById('editJadwalId').value;
+      const idKelas = document.getElementById('editIdKelas').value;
+      const idMatkul = document.getElementById('editIdMatkul').value;
+      const idDosen = document.getElementById('editIdDosen').value;
+      const idRuangan = document.getElementById('editIdRuangan').value;
+      const hari = document.getElementById('editHari').value;
+      const jamMulai = document.getElementById('editJamMulai').value;
+      const jamSelesai = document.getElementById('editJamSelesai').value;
+      const status = document.getElementById('editStatus').value;
+
+      if (!idKelas || !idMatkul || !idDosen || !idRuangan || !hari || !jamMulai || !jamSelesai || !status) {
+        alert('Semua kolom wajib diisi.');
+        return;
+      }
+
+      if (jamMulai >= jamSelesai) {
+        alert('Jam mulai harus lebih awal dari jam selesai.');
+        return;
+      }
+
+      setLoadingState(document.getElementById('editJadwalSubmitBtn'), true);
+      try {
+        const response = await fetch(`http://localhost:3000/api/jadwal/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id_kelas: idKelas, id_matkul: idMatkul, id_dosen: idDosen, id_ruangan: idRuangan, hari, jam_mulai: jamMulai, jam_selesai: jamSelesai, status }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        }
+        alert('Jadwal berhasil diperbarui.');
+        closeModal('editJadwalModal');
+        fetchJadwal();
+      } catch (error) {
+        console.error('Error updating jadwal:', error);
+        alert('Gagal memperbarui jadwal: ' + error.message);
+      } finally {
+        setLoadingState(document.getElementById('editJadwalSubmitBtn'), false);
+      }
+    }
+
+    // Fungsi untuk menghapus jadwal
+    async function deleteJadwal(id) {
+    const token = localStorage.getItem('token');
+    if (!token || isTokenExpired(token)) {
+      alert('Sesi Anda telah berakhir. Silakan login ulang.');
+      localStorage.removeItem("token");
+      localStorage.removeItem("nama_pengguna");
+      localStorage.removeItem("email");
+      localStorage.removeItem("peran");
+      localStorage.removeItem("id_kelas");
+      window.location.href = '../auth/login.html';
+      return;
+    }
+
+    if (!id || id <= 0) {
+      alert('ID jadwal tidak valid.');
+      return;
+    }
+
+    if (!confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/jadwal/jadwal/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+      }
+      alert('Jadwal berhasil dihapus.');
+      fetchJadwal(); // Pastikan fungsi ini ada untuk memuat ulang daftar jadwal
+    } catch (error) {
+      console.error('Error deleting jadwal:', error);
+      alert('Gagal menghapus jadwal: ' + (error.message || 'Terjadi kesalahan tidak diketahui.'));
+    }
+}
+
+    // Fungsi untuk mengubah status jadwal
+    async function updateStatusJadwal(id, currentStatus) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      document.getElementById('updateStatusJadwalId').value = id;
+      document.getElementById('updateStatus').value = currentStatus;
+      openModal('updateStatusModal');
+    }
+
+    // Fungsi untuk menyimpan perubahan status
+    async function saveStatusUpdate() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const id = document.getElementById('updateStatusJadwalId').value;
+      const status = document.getElementById('updateStatus').value;
+
+      setLoadingState(document.getElementById('updateStatusSubmitBtn'), true);
+      try {
+        const response = await fetch(`http://localhost:3000/api/jadwal/${id}/confirm`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        }
+        alert('Status jadwal berhasil diperbarui.');
+        closeModal('updateStatusModal');
+        fetchJadwal();
+      } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Gagal memperbarui status: ' + error.message);
+      } finally {
+        setLoadingState(document.getElementById('updateStatusSubmitBtn'), false);
+      }
+    }
+
+    // Fungsi untuk membuka modal
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.remove('hidden');
+    }
+
+    // Fungsi untuk menutup modal
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+      document.getElementById('addJadwalForm').reset();
+      document.getElementById('editJadwalForm').reset();
+      document.getElementById('updateStatusForm').reset();
+
+      document.getElementById('idKelas').disabled = true;
+      document.getElementById('idProdi').disabled = true;
+      document.getElementById('idMatkul').disabled = true;
+      document.getElementById('idDosen').disabled = true;
+      document.getElementById('idRuangan').disabled = true;
+      document.getElementById('editIdKelas').disabled = true;
+      document.getElementById('editIdProdi').disabled = true;
+      document.getElementById('editIdMatkul').disabled = true;
+      document.getElementById('editIdDosen').disabled = true;
+      document.getElementById('editIdRuangan').disabled = true;
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const namaPengguna = localStorage.getItem('nama_pengguna');
+      document.getElementById('profileInitials').textContent = namaPengguna ? namaPengguna.charAt(0).toUpperCase() : 'Admin';
+
+      document.getElementById('profileBtn').addEventListener('click', () => {
+        document.getElementById('profileDropdown').classList.toggle('hidden');
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+
+      document.getElementById('addJadwalBtn').addEventListener('click', () => {
+        openModal('addJadwalModal');
+      });
+
+      document.getElementById('addJadwalForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        addJadwal();
+      });
+
+      document.getElementById('editJadwalForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveEditedJadwal();
+      });
+
+      document.getElementById('updateStatusForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveStatusUpdate();
+      });
+
+      document.getElementById('cancelAddJadwalBtn').addEventListener('click', () => closeModal('addJadwalModal'));
+      document.getElementById('cancelEditJadwalBtn').addEventListener('click', () => closeModal('editJadwalModal'));
+      document.getElementById('cancelUpdateStatusBtn').addEventListener('click', () => closeModal('updateStatusModal'));
+
+      updateDateTime();
+      fetchJadwal();
+    });
+  </script>
+</body>
+</html>

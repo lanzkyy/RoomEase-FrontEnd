@@ -1,0 +1,189 @@
+<!-- booking/building-booking.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Pemesanan - RoomEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-10">
+    <div class="max-w-6xl mx-auto bg-white p-6 shadow-lg rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-700">Riwayat Booking</h2>
+            <div class="flex space-x-2">
+                <!-- Hapus dropdown lokasiFilter -->
+                <a href="../dashboard/ketua-dashboard.html" class="px-4 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600">Kembali</a>
+                <a href="add-booking.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Booking</a>
+            </div>
+        </div>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border p-2">Kelas</th>
+                    <th class="border p-2">Ruangan</th>
+                    <th class="border p-2">Lokasi</th>
+                    <th class="border p-2">Mata Kuliah</th>
+                    <th class="border p-2">Dosen</th>
+                    <th class="border p-2">Hari</th>
+                    <th class="border p-2">Jam</th>
+                    <th class="border p-2">Status</th>
+                    <th class="border p-2">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="bookingTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        let userProfile = null;
+
+        function isTokenExpired(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                return payload.exp < Date.now() / 1000;
+            } catch (error) {
+                return true;
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch("http://localhost:3000/api/auth/profile", {
+                    headers: { "Authorization": `Bearer ${token}` },
+                });
+                if (!response.ok) throw new Error((await response.json()).message || "Gagal memuat profil");
+                userProfile = await response.json();
+            } catch (error) {
+                console.error("Gagal mengambil profil:", error);
+                alert(`Gagal memuat profil: ${error.message}. Silakan login ulang.`);
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+            }
+        }
+
+        async function confirmStatus(id, status) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ status }),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`Jadwal berhasil dikonfirmasi sebagai ${status}`);
+                    window.location.reload();
+                } else {
+                    alert(`Gagal mengonfirmasi: ${result.message}`);
+                }
+            } catch (error) {
+                console.error("Error confirming status:", error);
+                alert("Terjadi kesalahan pada server: " + error.message);
+            }
+        }
+
+        async function deleteBooking(id) {
+            if (!confirm("Apakah Anda yakin ingin menghapus pemesanan ini?")) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/pemesanan/${id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` },
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.reload();
+                } else {
+                    alert(`Gagal menghapus pemesanan: ${result.message}`);
+                }
+            } catch (error) {
+                console.error("Error deleting booking:", error);
+                alert("Terjadi kesalahan pada server: " + error.message);
+            }
+        }
+
+        async function fetchBookings() {
+    try {
+        const response = await fetch("http://localhost:3000/api/pemesanan/my-bookings", {
+            headers: { "Authorization": `Bearer ${token}` },
+        });
+        console.log("Response status:", response.status);
+        if (!response.ok) {
+            const error = await response.json();
+            console.log("Error response:", error);
+            if (response.status === 401 || response.status === 403) {
+                alert(error.message || "Akses ditolak. Silakan login ulang.");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const bookings = await response.json();
+        console.log("Fetched bookings:", bookings);
+
+        const tableBody = document.getElementById("bookingTable");
+        tableBody.innerHTML = "";
+        if (bookings.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="9" class="border p-2 text-center">Tidak ada jadwal.</td></tr>`;
+            return;
+        }
+
+        bookings.forEach(booking => {
+            const waktuMulai = new Date(booking.waktu_mulai);
+            const waktuSelesai = new Date(booking.waktu_selesai);
+            const tanggal = waktuMulai.toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" });
+            const jamMulai = waktuMulai.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Makassar" });
+            const jamSelesai = waktuSelesai.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Makassar" });
+            const hari = waktuMulai.toLocaleString("id-ID", { weekday: "long", timeZone: "Asia/Makassar" });
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="border p-2">${booking.nama_kelas || 'Tidak ada'}</td>
+                <td class="border p-2">${booking.nama_ruangan || 'Tidak ada'}</td>
+                <td class="border p-2">${booking.lokasi || 'Tidak ada'}</td>
+                <td class="border p-2">${booking.nama_matkul || 'Tidak ada'}</td>
+                <td class="border p-2">${booking.nama_dosen || 'Tidak ada'}</td>
+                <td class="border p-2">${hari || 'Tidak ada'}</td>
+                <td class="border p-2">${jamMulai} - ${jamSelesai}</td>
+                <td class="border p-2">${booking.status || 'Tidak ada'}</td>
+                <td class="border p-2">
+                    <a href="booking-details.html?id=${booking.id_pemesanan}" class="bg-green-500 text-white px-3 py-1 rounded">Detail</a>
+                    <a href="edit-booking.html?id=${booking.id_pemesanan}" class="bg-yellow-500 text-white px-3 py-1 rounded ml-2">Edit</a>
+                    <button onclick="deleteBooking(${booking.id_pemesanan})" class="bg-red-600 text-white px-3 py-1 rounded ml-2">Hapus</button>
+                    ${userProfile.peran === 'admin' ? `
+                        <button onclick="confirmStatus(${booking.id_pemesanan}, 'disetujui')" class="bg-blue-500 text-white px-3 py-1 rounded ml-2">Setujui</button>
+                        <button onclick="confirmStatus(${booking.id_pemesanan}, 'ditolak')" class="bg-red-500 text-white px-3 py-1 rounded ml-2">Tolak</button>
+                    ` : ''}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        alert("Gagal memuat daftar jadwal: " + error.message);
+    }
+}
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!token || isTokenExpired(token)) {
+                alert("Anda harus login terlebih dahulu!");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            await fetchUserProfile();
+            if (!userProfile || (userProfile.peran !== "ketua" && userProfile.peran !== "sekretaris")) {
+                alert("Hanya ketua atau sekretaris yang dapat mengakses halaman ini!");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            fetchBookings();
+        });
+    </script>
+</body>
+</html>

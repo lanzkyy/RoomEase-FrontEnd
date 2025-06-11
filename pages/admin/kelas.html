@@ -1,0 +1,569 @@
+<!-- admin/kelas.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelas - RoomEase Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase Admin</h1>
+    <ul class="flex space-x-4">
+      <li><a href="../dashboard/admin-dashboard.html" class="hover:bg-blue-500 p-2 rounded-lg">Dashboard</a></li>
+      <li><a href="jadwal.html" class="hover:bg-blue-500 p-2 rounded-lg">Jadwal</a></li>
+      <li><a href="ruangan.html" class="hover:bg-blue-500 p-2 rounded-lg">Ruangan</a></li>
+      <li><a href="dosen.html" class="hover:bg-blue-500 p-2 rounded-lg">Dosen</a></li>
+      <li><a href="matakuliah.html" class="hover:bg-blue-500 p-2 rounded-lg">Mata Kuliah</a></li>
+      <li><a href="kelas.html" class="bg-blue-700 p-2 rounded-lg">Kelas</a></li>
+      <li><a href="CreateUser.html" class="hover:bg-blue-500 p-2 rounded-lg">User</a></li>
+    </ul>
+    <div>
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+        <span id="profileInitials">Admin</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">Daftar Kelas</h2>
+    <button id="addKelasBtn" class="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Tambah Kelas</button>
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white shadow rounded-lg">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">ID Kelas</th>
+            <th class="py-3 px-6 text-left">Nama Kelas</th>
+            <th class="py-3 px-6 text-left">Prodi</th>
+            <th class="py-3 px-6 text-left">Semester</th>
+            <th class="py-3 px-6 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="kelasTable" class="text-gray-600 text-sm font-light"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal Tambah Kelas -->
+    <div id="addKelasModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Tambah Kelas</h3>
+        <form id="addKelasForm" class="mt-4 space-y-4">
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Kelas</label>
+            <input type="text" id="namaKelas" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: TI 4A, TRK 4B, atau TIM 4FF" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Prodi</label>
+            <select id="prodi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <button type="submit" id="addKelasSubmitBtn" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelAddKelasBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Edit Kelas -->
+    <div id="editKelasModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Edit Kelas</h3>
+        <form id="editKelasForm" class="mt-4 space-y-4">
+          <input type="hidden" id="editKelasId">
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Kelas</label>
+            <input type="text" id="editNamaKelas" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: TI 4A, TRK 4B, atau TIM 4FF" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Prodi</label>
+            <select id="editProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <button type="submit" id="editKelasSubmitBtn" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelEditKelasBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-2 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk memeriksa token
+    function isTokenExpired(token) {
+      if (!token) {
+        console.error('Token tidak ditemukan di localStorage');
+        return true;
+      }
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.error('Format token tidak valid:', token);
+          return true;
+        }
+        const payload = JSON.parse(atob(parts[1]));
+        const isExpired = payload.exp < Date.now() / 1000;
+        if (isExpired) {
+          console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+        }
+        return isExpired;
+      } catch (error) {
+        console.error('Error saat memeriksa token:', error);
+        return true;
+      }
+    }
+
+    // Fungsi untuk memvalidasi format nama_kelas
+    function validateNamaKelas(nama) {
+      const trimmedNama = nama.trim();
+      const namaKelasPattern = /^[A-Z]{2,4}\s[0-9][A-Z]+$/;
+      const isValid = namaKelasPattern.test(trimmedNama);
+      console.log(`Validasi nama kelas: "${trimmedNama}" - ${isValid ? 'Valid' : 'Tidak valid'}`);
+      return isValid;
+    }
+
+    // Fungsi untuk menampilkan loading state pada tombol
+    function setLoadingState(button, isLoading) {
+      if (isLoading) {
+        button.disabled = true;
+        button.textContent = 'Menyimpan...';
+      } else {
+        button.disabled = false;
+        button.textContent = 'Simpan';
+      }
+    }
+
+    // Fungsi untuk mengambil data prodi dan mengisi dropdown
+    async function fetchProdi() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        return [];
+      }
+
+      try {
+        console.log('Mengambil data prodi dari server...');
+        const response = await fetch('http://localhost:3000/api/prodi', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Gagal mengambil data prodi');
+        }
+        const prodi = await response.json();
+        console.log('Data prodi diterima:', prodi);
+
+        // Isi dropdown untuk form tambah
+        const addProdiSelect = document.getElementById('prodi');
+        addProdiSelect.innerHTML = '<option value="">Pilih Prodi</option>';
+        prodi.forEach(p => {
+          const option = document.createElement('option');
+          option.value = p.id_prodi;
+          option.textContent = p.nama_prodi;
+          addProdiSelect.appendChild(option);
+        });
+
+        // Isi dropdown untuk form edit
+        const editProdiSelect = document.getElementById('editProdi');
+        editProdiSelect.innerHTML = '<option value="">Pilih Prodi</option>';
+        prodi.forEach(p => {
+          const option = document.createElement('option');
+          option.value = p.id_prodi;
+          option.textContent = p.nama_prodi;
+          editProdiSelect.appendChild(option);
+        });
+
+        return prodi;
+      } catch (error) {
+        console.error('Error fetching prodi:', error);
+        alert('Gagal mengambil data prodi: ' + error.message);
+        return [];
+      }
+    }
+
+    // Fungsi untuk mengambil data kelas
+    async function fetchKelas() {
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        console.log('Mengambil data kelas dari server...');
+        const response = await fetch('http://localhost:3000/api/kelas', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal mengambil data kelas');
+        }
+        const kelas = await response.json();
+        console.log('Data kelas diterima:', kelas);
+        displayKelas(kelas);
+      } catch (error) {
+        console.error('Error fetching kelas:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal mengambil data kelas: ' + error.message);
+        }
+        displayKelas([]);
+      }
+    }
+
+    // Fungsi untuk menampilkan kelas
+    function displayKelas(kelas) {
+      const tbody = document.getElementById("kelasTable");
+      tbody.innerHTML = "";
+      if (kelas.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="5" class="py-3 px-6 text-center text-gray-500">Tidak ada data kelas.</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      kelas.forEach((item) => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-100";
+        row.innerHTML = `
+          <td class="py-3 px-6">${item.id_kelas || 'N/A'}</td>
+          <td class="py-3 px-6">${item.nama_kelas || 'N/A'}</td>
+          <td class="py-3 px-6">${item.nama_prodi || 'N/A'}</td>
+          <td class="py-3 px-6">${item.semester || 'N/A'}</td>
+          <td class="py-3 px-6">
+            <button data-id="${item.id_kelas}" data-nama="${item.nama_kelas}" data-idprodi="${item.id_prodi}" class="editKelasBtn bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2">Edit</button>
+            <button onclick="deleteKelas(${item.id_kelas})" class="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.querySelectorAll(".editKelasBtn").forEach((button) => {
+        button.addEventListener("click", function () {
+          const id = this.getAttribute("data-id");
+          const nama = this.getAttribute("data-nama");
+          const idProdi = this.getAttribute("data-idprodi");
+          editKelas(id, nama, idProdi);
+        });
+      });
+    }
+
+    // Fungsi untuk menambah kelas
+    async function addKelas(nama, idProdi) {
+      console.log('Fungsi addKelas dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const trimmedNama = nama.trim();
+      if (!validateNamaKelas(trimmedNama)) {
+        console.log('Validasi gagal: Format nama kelas tidak valid');
+        alert("Format nama kelas tidak valid. Contoh: TI 4A, TRK 4B, atau TIM 4FF (2-4 huruf besar, spasi, angka, lalu satu atau lebih huruf besar). Pastikan tidak ada spasi berlebih.");
+        return;
+      }
+
+      if (!idProdi) {
+        console.log('Validasi gagal: Prodi wajib dipilih');
+        alert("Prodi wajib dipilih.");
+        return;
+      }
+
+      const submitBtn = document.getElementById('addKelasSubmitBtn');
+      setLoadingState(submitBtn, true);
+
+      try {
+        console.log('Mengirim request POST ke /api/kelas dengan data:', { nama_kelas: trimmedNama, id_prodi: idProdi });
+        const response = await fetch('http://localhost:3000/api/kelas', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_kelas: trimmedNama, id_prodi: idProdi }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal menambahkan kelas');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchKelas();
+        document.getElementById('addKelasModal').classList.add('hidden');
+        document.getElementById('addKelasForm').reset();
+        alert('Kelas berhasil ditambahkan!');
+      } catch (error) {
+        console.error('Error adding kelas:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal menambahkan kelas: ' + error.message);
+        }
+      } finally {
+        setLoadingState(submitBtn, false);
+      }
+    }
+
+    // Fungsi untuk mengedit kelas
+    async function updateKelas(id, nama, idProdi) {
+      console.log('Fungsi updateKelas dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      const trimmedNama = nama.trim();
+      if (!validateNamaKelas(trimmedNama)) {
+        console.log('Validasi gagal: Format nama kelas tidak valid');
+        alert("Format nama kelas tidak valid. Contoh: TI 4A, TRK 4B, atau TIM 4FF (2-4 huruf besar, spasi, angka, lalu satu atau lebih huruf besar). Pastikan tidak ada spasi berlebih.");
+        return;
+      }
+
+      if (!idProdi) {
+        console.log('Validasi gagal: Prodi wajib dipilih');
+        alert("Prodi wajib dipilih.");
+        return;
+      }
+
+      const submitBtn = document.getElementById('editKelasSubmitBtn');
+      setLoadingState(submitBtn, true);
+
+      try {
+        console.log('Mengirim request PUT ke /api/kelas/' + id + ' dengan data:', { nama_kelas: trimmedNama, id_prodi: idProdi });
+        const response = await fetch(`http://localhost:3000/api/kelas/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_kelas: trimmedNama, id_prodi: idProdi }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal memperbarui kelas');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchKelas();
+        document.getElementById('editKelasModal').classList.add('hidden');
+        alert('Kelas berhasil diperbarui!');
+      } catch (error) {
+        console.error('Error updating kelas:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal memperbarui kelas: ' + error.message);
+        }
+      } finally {
+        setLoadingState(submitBtn, false);
+      }
+    }
+
+    // Fungsi untuk menghapus kelas
+    async function deleteKelas(id) {
+      console.log('Fungsi deleteKelas dipanggil');
+      const token = localStorage.getItem('token');
+      console.log('Token yang digunakan:', token);
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa');
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      if (!confirm('Apakah Anda yakin ingin menghapus kelas ini?')) return;
+
+      try {
+        console.log('Mengirim request DELETE ke /api/kelas/' + id);
+        const response = await fetch(`http://localhost:3000/api/kelas/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error dari server:', errorData);
+          if (response.status === 401 || response.status === 403) {
+            console.log('Akses ditolak atau token kadaluarsa');
+            alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("nama_pengguna");
+            localStorage.removeItem("email");
+            localStorage.removeItem("peran");
+            localStorage.removeItem("id_kelas");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(errorData.message || 'Gagal menghapus kelas');
+        }
+        const responseData = await response.json();
+        console.log('Data respons dari server:', responseData);
+        await fetchKelas();
+        alert('Kelas berhasil dihapus!');
+      } catch (error) {
+        console.error('Error deleting kelas:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Gagal terhubung ke server. Periksa koneksi Anda atau pastikan server berjalan.');
+        } else {
+          alert('Gagal menghapus kelas: ' + error.message);
+        }
+      }
+    }
+
+    // Fungsi untuk membuka modal edit
+    function editKelas(id, nama, idProdi) {
+      console.log('editKelas dipanggil:', { id, nama, idProdi });
+      document.getElementById('editKelasId').value = id;
+      document.getElementById('editNamaKelas').value = nama;
+      document.getElementById('editProdi').value = idProdi;
+      document.getElementById('editKelasModal').classList.remove('hidden');
+    }
+
+    // Event Listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+
+      console.log('Token dari localStorage:', token);
+      console.log('Peran dari localStorage:', peran);
+
+      if (!token || isTokenExpired(token)) {
+        alert("Sesi Anda telah berakhir. Silakan login kembali.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      if (peran !== "admin") {
+        alert("Akses ditolak. Halaman ini hanya untuk admin.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("nama_pengguna");
+        localStorage.removeItem("email");
+        localStorage.removeItem("peran");
+        localStorage.removeItem("id_kelas");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+
+      // Ambil data prodi dan kelas saat halaman dimuat
+      Promise.all([fetchProdi(), fetchKelas()]);
+
+      document.getElementById('addKelasBtn').addEventListener('click', () => {
+        console.log('Tombol Tambah Kelas diklik');
+        document.getElementById('addKelasModal').classList.remove('hidden');
+      });
+
+      document.getElementById('addKelasForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        console.log('Form Tambah Kelas disubmit');
+        const nama = document.getElementById('namaKelas').value;
+        const idProdi = document.getElementById('prodi').value;
+        console.log('Data yang akan dikirim:', { nama, idProdi });
+        addKelas(nama, idProdi);
+      });
+
+      document.getElementById('editKelasForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        console.log('Form Edit Kelas disubmit');
+        const id = document.getElementById('editKelasId').value;
+        const nama = document.getElementById('editNamaKelas').value;
+        const idProdi = document.getElementById('editProdi').value;
+        console.log('Data yang akan dikirim:', { id, nama, idProdi });
+        updateKelas(id, nama, idProdi);
+      });
+
+      document.getElementById('cancelAddKelasBtn').addEventListener('click', () => {
+        console.log('Tombol Batal (Tambah) diklik');
+        document.getElementById('addKelasModal').classList.add('hidden');
+        document.getElementById('addKelasForm').reset();
+        setLoadingState(document.getElementById('addKelasSubmitBtn'), false);
+      });
+
+      document.getElementById('cancelEditKelasBtn').addEventListener('click', () => {
+        console.log('Tombol Batal (Edit) diklik');
+        document.getElementById('editKelasModal').classList.add('hidden');
+        setLoadingState(document.getElementById('editKelasSubmitBtn'), false);
+      });
+    });
+  </script>
+</body>
+</html>

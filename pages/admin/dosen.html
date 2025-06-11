@@ -1,0 +1,435 @@
+<!-- pages/admin/dosen.html -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dosen - RoomEase Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase Admin</h1>
+    <ul class="flex space-x-4">
+      <li><a href="../dashboard/admin-dashboard.html" class="hover:bg-blue-500 p-2 rounded-lg">Dashboard</a></li>
+      <li><a href="jadwal.html" class="hover:bg-blue-500 p-2 rounded-lg">Jadwal</a></li>
+      <li><a href="ruangan.html" class="hover:bg-blue-500 p-2 rounded-lg">Ruangan</a></li>
+      <li><a href="dosen.html" class="bg-blue-700 p-2 rounded-lg">Dosen</a></li>
+      <li><a href="matakuliah.html" class="hover:bg-blue-500 p-2 rounded-lg">Mata Kuliah</a></li>
+      <li><a href="kelas.html" class="hover:bg-blue-500 p-2 rounded-lg">Kelas</a></li>
+      <li><a href="CreateUser.html" class="hover:bg-blue-500 p-2 rounded-lg">User</a></li>
+    </ul>
+    <div>
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+        <span id="profileInitials">Admin</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">Daftar Dosen</h2>
+    <div class="flex justify-between mb-4">
+      <div class="w-1/3">
+        <label for="prodiFilter" class="block text-gray-700 font-semibold mb-1">Filter berdasarkan Prodi:</label>
+        <select id="prodiFilter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Semua Prodi</option>
+        </select>
+      </div>
+      <button id="addDosenBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Tambah Dosen</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white shadow rounded-lg">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">ID Dosen</th>
+            <th class="py-3 px-6 text-left">Kode Dosen</th>
+            <th class="py-3 px-6 text-left">Nama Dosen</th>
+            <th class="py-3 px-6 text-left">No. HP</th>
+            <th class="py-3 px-6 text-left">Prodi</th>
+            <th class="py-3 px-6 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="dosenTable" class="text-gray-600 text-sm font-light"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal Tambah Dosen -->
+    <div id="addDosenModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Tambah Dosen</h3>
+        <form id="addDosenForm" class="mt-4 space-y-4">
+          <div>
+            <label class="block text-gray-700 font-semibold">Kode Dosen</label>
+            <input type="text" id="kodeDosen" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required maxlength="10">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Dosen</label>
+            <input type="text" id="namaDosen" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">No. HP</label>
+            <input type="text" id="noHp" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Prodi</label>
+            <select id="prodi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelAddDosenBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-3 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Edit Dosen -->
+    <div id="editDosenModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Edit Dosen</h3>
+        <form id="editDosenForm" class="mt-4 space-y-4">
+          <input type="hidden" id="editDosenId">
+          <div>
+            <label class="block text-gray-700 font-semibold">Kode Dosen</label>
+            <input type="text" id="editKodeDosen" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required maxlength="10">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Nama Dosen</label>
+            <input type="text" id="editNamaDosen" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">No. HP</label>
+            <input type="text" id="editNoHp" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold">Prodi</label>
+            <select id="editProdi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Pilih Prodi</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700">Simpan</button>
+          <button type="button" id="cancelEditDosenBtn" class="mt-2 w-full bg-gray-300 text-gray-800 p-3 rounded-lg hover:bg-gray-400">Batal</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk memeriksa token
+    function isTokenExpired(token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp < Date.now() / 1000;
+      } catch (error) {
+        return true;
+      }
+    }
+
+    // Fungsi untuk mendapatkan inisial dari nama pengguna
+    function getInitials(token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const nama = payload.nama || 'Admin';
+        return nama.charAt(0).toUpperCase();
+      } catch (error) {
+        return 'A';
+      }
+    }
+
+    // Fungsi untuk logout
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '../auth/login.html';
+    }
+
+    // Fungsi untuk mengambil data prodi
+    async function fetchProdi() {
+  const token = localStorage.getItem('token');
+  if (!token || isTokenExpired(token)) {
+    alert('Sesi Anda telah berakhir. Silakan login ulang.');
+    window.location.href = '../auth/login.html';
+    return [];
+  }
+
+  try {
+    const response = await fetch('http://localhost:3000/api/prodi', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Gagal mengambil data prodi');
+    }
+    const prodiList = await response.json();
+    console.log("Fetched prodiList:", prodiList); // Tambahkan log ini
+    const filterSelect = document.getElementById('prodiFilter');
+    const addSelect = document.getElementById('prodi');
+    const editSelect = document.getElementById('editProdi');
+
+    prodiList.forEach(prodi => {
+      const optionFilter = document.createElement('option');
+      optionFilter.value = prodi.id_prodi;
+      optionFilter.textContent = prodi.nama_prodi;
+      filterSelect.appendChild(optionFilter);
+
+      const optionAdd = document.createElement('option');
+      optionAdd.value = prodi.id_prodi;
+      optionAdd.textContent = prodi.nama_prodi;
+      addSelect.appendChild(optionAdd);
+
+      const optionEdit = document.createElement('option');
+      optionEdit.value = prodi.id_prodi;
+      optionEdit.textContent = prodi.nama_prodi;
+      editSelect.appendChild(optionEdit);
+    });
+    return prodiList;
+  } catch (error) {
+    console.error('Error fetching prodi:', error);
+    alert(error.message);
+    return [];
+  }
+}
+
+    // Fungsi untuk mengambil data dosen
+    async function fetchDosen(prodi = null) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      try {
+        const url = prodi ? `http://localhost:3000/api/dosen?prodi=${encodeURIComponent(prodi)}` : 'http://localhost:3000/api/dosen';
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Gagal mengambil data dosen');
+        }
+        const dosens = await response.json();
+        displayDosen(dosens);
+      } catch (error) {
+        console.error('Error fetching dosen:', error);
+        alert(error.message);
+        displayDosen([]);
+      }
+    }
+
+    // Fungsi untuk menampilkan dosen
+    function displayDosen(dosens) {
+      const tbody = document.getElementById("dosenTable");
+      tbody.innerHTML = "";
+      if (dosens.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="6" class="py-3 px-6 text-center text-gray-500">Tidak ada data dosen.</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      const prodiList = JSON.parse(localStorage.getItem('prodiList') || '[]');
+      dosens.forEach((dosen) => {
+        const prodi = prodiList.find(p => p.id_prodi == dosen.prodi);
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-100";
+        row.innerHTML = `
+          <td class="py-3 px-6">${dosen.id_dosen || 'N/A'}</td>
+          <td class="py-3 px-6">${dosen.kode_dosen || 'N/A'}</td>
+          <td class="py-3 px-6">${dosen.nama_dosen || 'N/A'}</td>
+          <td class="py-3 px-6">${dosen.no_hp || 'N/A'}</td>
+          <td class="py-3 px-6">${prodi ? prodi.nama_prodi : 'N/A'}</td>
+          <td class="py-3 px-6">
+            <button onclick="editDosen(${dosen.id_dosen}, '${dosen.kode_dosen}', '${dosen.nama_dosen}', '${dosen.no_hp || ''}', ${dosen.prodi || 'null'})" class="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2">Edit</button>
+            <button onclick="deleteDosen(${dosen.id_dosen})" class="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Fungsi untuk validasi input
+    function validateInput(kode_dosen, nama_dosen, no_hp, prodi) {
+      if (!kode_dosen || kode_dosen.length > 10) {
+        alert('Kode dosen harus diisi dan maksimal 10 karakter.');
+        return false;
+      }
+      if (!nama_dosen) {
+        alert('Nama dosen harus diisi.');
+        return false;
+      }
+      if (no_hp && !/^\d{10,15}$/.test(no_hp)) {
+        alert('Nomor HP harus berupa angka dan antara 10-15 digit.');
+        return false;
+      }
+      if (!prodi) {
+        alert('Prodi harus dipilih.');
+        return false;
+      }
+      return true;
+    }
+
+    // Fungsi untuk menambah dosen
+    async function addDosen(kode_dosen, nama_dosen, no_hp, prodi) {
+  console.log("Prodi yang dikirim (addDosen):", prodi); // Tambahkan log ini
+  if (!validateInput(kode_dosen, nama_dosen, no_hp, prodi)) return;
+
+  const token = localStorage.getItem('token');
+  if (!token || isTokenExpired(token)) {
+    alert('Sesi Anda telah berakhir. Silakan login ulang.');
+    window.location.href = '../auth/login.html';
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:3000/api/dosen', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ kode_dosen, nama_dosen, no_hp, prodi }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Gagal menambahkan dosen');
+    }
+    await fetchDosen();
+    document.getElementById('addDosenModal').classList.add('hidden');
+    document.getElementById('addDosenForm').reset();
+    alert('Dosen berhasil ditambahkan!');
+  } catch (error) {
+    console.error('Error adding dosen:', error);
+    alert(error.message);
+  }
+}
+
+    // Fungsi untuk mengedit dosen
+    async function updateDosen(id, kode_dosen, nama_dosen, no_hp, prodi) {
+  console.log("Prodi yang dikirim (updateDosen):", prodi); // Tambahkan log ini
+  if (!validateInput(kode_dosen, nama_dosen, no_hp, prodi)) return;
+
+  const token = localStorage.getItem('token');
+  if (!token || isTokenExpired(token)) {
+    alert('Sesi Anda telah berakhir. Silakan login ulang.');
+    window.location.href = '../auth/login.html';
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/dosen/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ kode_dosen, nama_dosen, no_hp, prodi }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Gagal memperbarui dosen');
+    }
+    await fetchDosen();
+    document.getElementById('editDosenModal').classList.add('hidden');
+    alert('Dosen berhasil diperbarui!');
+  } catch (error) {
+    console.error('Error updating dosen:', error);
+    alert(error.message);
+  }
+}
+
+    // Fungsi untuk menghapus dosen
+    async function deleteDosen(id) {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      if (confirm('Apakah Anda yakin ingin menghapus dosen ini?')) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/dosen/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Gagal menghapus dosen');
+          }
+          await fetchDosen(); // Refresh daftar
+          alert('Dosen berhasil dihapus!');
+        } catch (error) {
+          console.error('Error deleting dosen:', error);
+          alert(error.message);
+        }
+      }
+    }
+
+    // Fungsi untuk membuka modal edit
+    function editDosen(id, kode_dosen, nama_dosen, no_hp, prodi) {
+      document.getElementById('editDosenId').value = id;
+      document.getElementById('editKodeDosen').value = kode_dosen;
+      document.getElementById('editNamaDosen').value = nama_dosen;
+      document.getElementById('editNoHp').value = no_hp || '';
+      const editProdiSelect = document.getElementById('editProdi');
+      editProdiSelect.value = prodi || '';
+      document.getElementById('editDosenModal').classList.remove('hidden');
+    }
+
+    // Event Listeners
+    document.getElementById('addDosenBtn').addEventListener('click', () => {
+      document.getElementById('addDosenModal').classList.remove('hidden');
+    });
+
+    document.getElementById('addDosenForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const kode_dosen = document.getElementById('kodeDosen').value;
+      const nama_dosen = document.getElementById('namaDosen').value;
+      const no_hp = document.getElementById('noHp').value || null;
+      const prodi = document.getElementById('prodi').value;
+      addDosen(kode_dosen, nama_dosen, no_hp, prodi);
+    });
+
+    document.getElementById('editDosenForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editDosenId').value;
+      const kode_dosen = document.getElementById('editKodeDosen').value;
+      const nama_dosen = document.getElementById('editNamaDosen').value;
+      const no_hp = document.getElementById('editNoHp').value || null;
+      const prodi = document.getElementById('editProdi').value;
+      updateDosen(id, kode_dosen, nama_dosen, no_hp, prodi);
+    });
+
+    document.getElementById('cancelAddDosenBtn').addEventListener('click', () => {
+      document.getElementById('addDosenModal').classList.add('hidden');
+      document.getElementById('addDosenForm').reset();
+    });
+
+    document.getElementById('cancelEditDosenBtn').addEventListener('click', () => {
+      document.getElementById('editDosenModal').classList.add('hidden');
+    });
+
+    document.getElementById('prodiFilter').addEventListener('change', (e) => {
+      const prodi = e.target.value || null;
+      fetchDosen(prodi);
+    });
+
+    document.getElementById('profileBtn').addEventListener('click', () => {
+      if (confirm('Apakah Anda yakin ingin logout?')) {
+        logout();
+      }
+    });
+
+    // Inisialisasi halaman
+    document.addEventListener("DOMContentLoaded", async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        document.getElementById('profileInitials').textContent = getInitials(token);
+      }
+      const prodiList = await fetchProdi();
+      localStorage.setItem('prodiList', JSON.stringify(prodiList));
+      fetchDosen();
+    });
+  </script>
+</body>
+</html>

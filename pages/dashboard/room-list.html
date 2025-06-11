@@ -1,0 +1,326 @@
+<!-- dashboard/room-list.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Ruangan - RoomEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+        <h1 class="text-lg font-bold">RoomEase</h1>
+        <ul id="navLinks" class="flex space-x-4">
+            <li><a href="#" id="dashboardLink" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Dashboard</a></li>
+            <li><a href="../booking/building-bookings.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white" onclick="restrictBookingAccess(event)">Booking</a></li>
+            <li><a href="../booking/kalender.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Kalender</a></li>
+        </ul>
+        <div class="relative">
+            <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+                <span id="profileBtnInitials" class="font-bold">PP</span>
+            </button>
+            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4 text-black">
+                <div class="flex items-center space-x-3" id="profileInfo">
+                    <div id="profileInitials" class="bg-gray-500 text-white w-12 h-12 flex items-center justify-center rounded-full text-lg font-bold">PP</div>
+                    <div>
+                        <p id="userName" class="font-bold">Pengunjung Publik</p>
+                        <p id="userEmail" class="text-sm text-gray-500">Silakan login untuk akses penuh</p>
+                    </div>
+                </div>
+                <hr class="my-2">
+                <a id="authLink" href="#" class="text-blue-500 hover:underline block mb-2" onclick="handleAuthClick(event)">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="pageTitle" class="text-xl font-semibold">Daftar Ruangan</h2>
+            <div class="flex space-x-2">
+                <input type="date" id="jadwalDate" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="fetchRooms()">
+                <input type="time" id="jadwalTime" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="fetchRooms()">
+                <select id="roomFilter" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="fetchRooms()">
+                    <option value="total">Semua Ruangan</option>
+                    <option value="available">Tersedia</option>
+                    <option value="booked">Terisi</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="text-red-500 text-center mb-4 hidden"></div>
+        <div class="overflow-x-auto">
+            <table class="w-full bg-white shadow rounded-lg">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Nama Ruangan</th>
+                        <th class="py-3 px-6 text-left">Status</th>
+                        <th class="py-3 px-6 text-left">Jadwal (Jika Terisi)</th>
+                    </tr>
+                </thead>
+                <tbody id="roomTable" class="text-gray-600 text-sm font-light"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        function isTokenExpired(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                return payload.exp < Date.now() / 1000;
+            } catch (error) {
+                return true;
+            }
+        }
+
+        function getInitials(name) {
+            if (!name) return "PP";
+            const initials = name.match(/\b\w/g) || [];
+            return initials.join('').toUpperCase().slice(0, 2);
+        }
+
+        async function loadUserProfile() {
+            const token = localStorage.getItem("token");
+            if (!token || isTokenExpired(token)) {
+                localStorage.clear();
+                return false;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/profile', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    if (response.status === 401 || response.status === 403) {
+                        localStorage.clear();
+                        alert('Sesi Anda telah berakhir. Silakan login kembali.');
+                        window.location.href = '../auth/login.html';
+                        return false;
+                    }
+                    throw new Error('Gagal mengambil profil');
+                }
+
+                const userData = await response.json();
+                localStorage.setItem('nama_pengguna', userData.nama_pengguna || '');
+                localStorage.setItem('email', userData.email || '');
+                localStorage.setItem('peran', userData.peran || '');
+                localStorage.setItem('id_kelas', userData.id_kelas || '');
+                localStorage.setItem('id_pengguna', userData.id_pengguna || '');
+                return true;
+            } catch (error) {
+                console.error('Error saat memuat profil:', error);
+                localStorage.clear();
+                return false;
+            }
+        }
+
+        function handleAuthClick(event) {
+            event.preventDefault();
+            const token = localStorage.getItem("token");
+            if (token && !isTokenExpired(token)) {
+                localStorage.clear();
+                alert("Anda telah logout.");
+                window.location.href = "../auth/login.html";
+            } else {
+                window.location.href = "../auth/login.html";
+            }
+        }
+
+        function restrictBookingAccess(event) {
+  const token = localStorage.getItem("token");
+  if (!token || isTokenExpired(token)) {
+    event.preventDefault();
+    alert("Anda harus login untuk mengakses halaman Booking!");
+    window.location.href = "../auth/login.html";
+  }
+}
+
+        function updateDateTime() {
+            const now = new Date();
+            const jadwalDateInput = document.getElementById("jadwalDate");
+            const jadwalTimeInput = document.getElementById("jadwalTime");
+            jadwalDateInput.value = now.toISOString().split("T")[0];
+            jadwalTimeInput.value = now.toLocaleTimeString('en-US', { hour12: false, timeZone: 'Asia/Makassar' }).slice(0, 5);
+            fetchRooms();
+        }
+
+        async function fetchRooms() {
+  const jadwalDateInput = document.getElementById("jadwalDate");
+  const jadwalTimeInput = document.getElementById("jadwalTime");
+  const roomFilter = document.getElementById("roomFilter").value;
+  const errorMessageDiv = document.getElementById("errorMessage");
+
+  if (!jadwalDateInput.value) {
+    updateDateTime();
+    return;
+  }
+
+  const selectedDate = new Date(jadwalDateInput.value);
+  const hari = selectedDate.toLocaleString("id-ID", { weekday: "long", timeZone: 'Asia/Makassar' });
+  const tanggal = jadwalDateInput.value;
+  const selectedTime = jadwalTimeInput.value || new Date().toLocaleTimeString('en-US', { hour12: false, timeZone: 'Asia/Makassar' }).slice(0, 5);
+  const token = localStorage.getItem("token");
+  const isAuthenticated = token && !isTokenExpired(token);
+  const peran = localStorage.getItem("peran");
+
+  console.log(`[${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA] isAuthenticated: ${isAuthenticated}, Token: ${token}, Peran: ${peran}`);
+
+  if (token && isTokenExpired(token)) {
+    localStorage.clear();
+    console.log(`[${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA] Token kadaluarsa, menghapus dari localStorage`);
+    window.location.reload();
+    return;
+  }
+
+  const pageTitle = document.getElementById("pageTitle");
+  pageTitle.textContent = roomFilter === "total" ? "Daftar Total Ruangan" : roomFilter === "available" ? "Daftar Ruangan Tersedia" : "Daftar Ruangan Terisi";
+
+  try {
+    const endpoint = isAuthenticated && (peran === 'admin' || peran === 'ketua' || peran === 'sekretaris')
+      ? '/api/ruangan/status'
+      : '/api/ruangan/public/status';
+    const params = `hari=${encodeURIComponent(hari)}&tanggal=${encodeURIComponent(tanggal)}&waktu=${encodeURIComponent(selectedTime)}`;
+    const response = await fetch(`http://localhost:3000${endpoint}?${params}`, {
+      method: "GET",
+      headers: isAuthenticated ? { "Authorization": `Bearer ${token}` } : {},
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.log(`[${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA] Response error:`, error);
+      if (isAuthenticated && (response.status === 401 || response.status === 403)) {
+        localStorage.clear();
+        alert("Sesi Anda telah berakhir. Silakan login kembali.");
+        window.location.href = "../auth/login.html";
+        return;
+      }
+      throw new Error(error.message || `HTTP error! Status: ${response.status}`);
+    }
+
+    errorMessageDiv.classList.add("hidden");
+    const rooms = await response.json();
+    console.log(`[${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA] Data ruangan:`, rooms);
+
+    const roomsToDisplay = rooms.filter(room => {
+      if (roomFilter === "available") return room.status === "Kosong";
+      if (roomFilter === "booked") return room.status === "Terisi" || room.status === "Tunda";
+      return true;
+    });
+
+    const tbody = document.getElementById("roomTable");
+    tbody.innerHTML = "";
+    if (roomsToDisplay.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td colspan="3" class="py-3 px-6 text-center text-gray-500">Tidak ada data ruangan untuk ${hari}, ${selectedDate.toLocaleDateString("id-ID")} pada jam ${selectedTime}.</td>`;
+      tbody.appendChild(row);
+      return;
+    }
+
+    roomsToDisplay.forEach(room => {
+      const row = document.createElement("tr");
+      row.className = "border-b border-gray-200 hover:bg-gray-100";
+      let statusColor = "text-gray-500";
+      if (room.status === "Kosong") statusColor = "text-green-500";
+      else if (room.status === "Terisi") statusColor = "text-red-500";
+      else if (room.status === "Tunda") statusColor = "text-yellow-500";
+      else if (room.status === "Libur") statusColor = "text-blue-500";
+
+      row.innerHTML = `
+        <td class="py-3 px-6">${room.nama_ruangan}</td>
+        <td class="py-3 px-6"><span class="${statusColor}">${room.status}</span></td>
+        <td class="py-3 px-6">${room.status !== "Kosong" ? room.jadwal : "-"}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error(`[${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA] Error fetching rooms:`, error);
+    errorMessageDiv.textContent = error.message.includes("Tidak ada ruangan") 
+      ? "Tidak ada ruangan yang tersedia untuk kriteria yang dipilih."
+      : `Gagal memuat daftar ruangan: ${error.message}. Silakan coba lagi nanti atau hubungi administrator.`;
+    errorMessageDiv.classList.remove("hidden");
+    const tbody = document.getElementById("roomTable");
+    tbody.innerHTML = `<tr><td colspan="3" class="py-3 px-6 text-center text-gray-500">${
+      error.message.includes("Tidak ada ruangan") 
+        ? "Tidak ada ruangan yang tersedia untuk kriteria yang dipilih."
+        : "Gagal memuat data. Silakan coba lagi nanti."
+    }</td></tr>`;
+  }
+}
+
+        async function updateUIBasedOnAuth() {
+            const token = localStorage.getItem("token");
+            const navLinks = document.getElementById("navLinks");
+            const profileDropdown = document.getElementById("profileDropdown");
+            const isAuthenticated = await loadUserProfile();
+            const namaPengguna = localStorage.getItem("nama_pengguna") || "Pengunjung Publik";
+            const email = localStorage.getItem("email") || "Silakan login untuk akses penuh";
+            const peran = localStorage.getItem("peran") || "";
+            const initials = getInitials(namaPengguna);
+            const dashboardLink = document.getElementById("dashboardLink");
+
+            if (isAuthenticated && peran) {
+                if (!navLinks.querySelector("a[href='../dashboard/settings.html']")) {
+                    const settingsLink = document.createElement("li");
+                    settingsLink.innerHTML = '<a href="../dashboard/settings.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Pengaturan</a>';
+                    navLinks.appendChild(settingsLink);
+                }
+                if (!profileDropdown.querySelector("a[href='../dashboard/settings.html']")) {
+                    const settingsProfileLink = document.createElement("a");
+                    settingsProfileLink.href = "../dashboard/settings.html";
+                    settingsProfileLink.className = "text-blue-500 hover:underline block";
+                    settingsProfileLink.textContent = "Pengaturan Profil";
+                    profileDropdown.insertBefore(settingsProfileLink, profileDropdown.querySelector("hr").nextSibling);
+                }
+
+                document.getElementById("userName").textContent = namaPengguna;
+                document.getElementById("userEmail").textContent = email;
+                document.getElementById("profileBtnInitials").textContent = initials;
+                document.getElementById("profileInitials").textContent = initials;
+                document.getElementById("authLink").textContent = "Logout";
+
+                if (peran === "admin") {
+                    dashboardLink.href = "../dashboard/admin-dashboard.html";
+                } else if (peran === "ketua" || peran === "sekretaris") {
+                    dashboardLink.href = "../dashboard/ketua-dashboard.html";
+                } else {
+                    dashboardLink.href = "../dashboard/ketua-dashboard.html";
+                }
+            } else {
+                const settingsLink = navLinks.querySelector("a[href='../dashboard/settings.html']");
+                if (settingsLink) navLinks.removeChild(settingsLink.parentElement);
+                const settingsProfileLink = profileDropdown.querySelector("a[href='../dashboard/settings.html']");
+                if (settingsProfileLink) profileDropdown.removeChild(settingsProfileLink);
+
+                document.getElementById("userName").textContent = "Pengunjung Publik";
+                document.getElementById("userEmail").textContent = "Silakan login untuk akses penuh";
+                document.getElementById("profileBtnInitials").textContent = "PP";
+                document.getElementById("profileInitials").textContent = "PP";
+                document.getElementById("authLink").textContent = "Login";
+                dashboardLink.href = "../dashboard/ketua-dashboard.html";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get("type") || "total";
+            document.getElementById("roomFilter").value = type;
+
+            await updateUIBasedOnAuth();
+            updateDateTime();
+            setInterval(fetchRooms, 60000);
+            setInterval(updateDateTime, 60000);
+
+            const profileBtn = document.getElementById("profileBtn");
+            const profileDropdown = document.getElementById("profileDropdown");
+            profileBtn.addEventListener("click", () => profileDropdown.classList.toggle("hidden"));
+            document.addEventListener("click", (event) => {
+                if (!profileBtn.contains(event.target) && !profileDropdown.contains(event.target)) {
+                    profileDropdown.classList.add("hidden");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

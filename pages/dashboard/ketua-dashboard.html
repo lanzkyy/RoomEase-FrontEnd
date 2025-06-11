@@ -1,0 +1,749 @@
+<!-- dashboard/ketua-dashboard.html -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - RoomEase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase</h1>
+    <ul id="navLinks" class="flex space-x-4">
+      <li><a href="../dashboard/ketua-dashboard.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Dashboard</a></li>
+      <li><a href="../booking/building-bookings.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white" onclick="restrictBookingAccess(event)">Booking</a></li>
+      <li><a href="../booking/kalender.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Kalender</a></li>
+    </ul>
+    <div class="relative">
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+        <span id="profileBtnInitials" class="font-bold">PP</span>
+      </button>
+      <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4 text-black">
+        <div class="flex items-center space-x-3" id="profileInfo">
+          <div id="profileInitials" class="bg-gray-500 text-white w-12 h-12 flex items-center justify-center rounded-full text-lg font-bold">PP</div>
+          <div>
+            <p id="userName" class="font-bold">Pengunjung Publik</p>
+            <p id="userEmail" class="text-sm text-gray-500">Silakan login untuk akses penuh</p>
+          </div>
+        </div>
+        <hr class="my-2">
+        <a id="authLink" href="#" class="text-blue-500 hover:underline block mb-2" onclick="handleAuthClick(event)">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <!-- Waktu -->
+    <div id="datetime" class="text-lg font-semibold text-gray-600 mb-6"></div>
+
+    <!-- Statistik -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <a href="room-list.html?type=total">
+        <div class="p-6 bg-blue-500 text-white shadow-lg rounded-lg cursor-pointer hover:bg-blue-600 transition">
+          <h2 class="text-xl font-semibold">Total Ruangan</h2>
+          <p id="totalRooms" class="text-2xl font-bold">0</p>
+        </div>
+      </a>
+      <a href="room-list.html?type=available">
+        <div class="p-6 bg-green-500 text-white shadow-lg rounded-lg cursor-pointer hover:bg-green-600 transition">
+          <h2 class="text-xl font-semibold">Ruangan Tersedia</h2>
+          <p id="availableRooms" class="text-2xl font-bold">0</p>
+        </div>
+      </a>
+      <a href="room-list.html?type=booked">
+        <div class="p-6 bg-red-500 text-white shadow-lg rounded-lg cursor-pointer hover:bg-red-600 transition">
+          <h2 class="text-xl font-semibold">Ruangan Terisi</h2>
+          <p id="bookedRooms" class="text-2xl font-bold">0</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- Tabel Jadwal -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold">Jadwal Hari Ini</h2>
+      <div class="flex space-x-2">
+        <input type="date" id="jadwalDate" class="p-2 border rounded-lg" onchange="fetchJadwal()">
+        <div id="bookingButtons" class="space-x-2 hidden">
+      
+        </div>
+      </div>
+    </div>
+    <div id="errorMessage" class="text-red-500 text-center mb-4 hidden"></div>
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white shadow rounded-lg">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">Kelas</th>
+            <th class="py-3 px-6 text-left">Ruangan</th>
+            <th class="py-3 px-6 text-left">Mata Kuliah</th>
+            <th class="py-3 px-6 text-left">Dosen</th>
+            <th class="py-3 px-6 text-left">Hari</th>
+            <th class="py-3 px-6 text-left">Jam</th>
+            <th class="py-3 px-6 text-left">Status</th>
+            <th class="py-3 px-6 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="jadwalTable" class="text-gray-600 text-sm font-light"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal untuk Tunda -->
+  <div id="tundaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+      <h2 class="text-lg font-bold mb-4">Tunda Jadwal</h2>
+      <div class="mb-4">
+        <label for="tundaJamMulai" class="block text-sm font-medium text-gray-700">Jam Mulai Baru</label>
+        <input type="time" id="tundaJamMulai" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+      </div>
+      <div class="mb-4">
+        <label for="tundaJamSelesai" class="block text-sm font-medium text-gray-700">Jam Selesai Baru</label>
+        <input type="time" id="tundaJamSelesai" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+      </div>
+      <div class="flex justify-end">
+        <button id="tundaCancelBtn" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Batal</button>
+        <button id="tundaSubmitBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Simpan</button>
+      </div>
+      <div id="tundaError" class="text-red-500 text-center mt-4 hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    function isTokenExpired(token) {
+      if (!token) {
+        console.error('Token tidak ditemukan di localStorage');
+        return true;
+      }
+
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.error('Format token tidak valid:', token);
+          return true;
+        }
+
+        const payload = JSON.parse(atob(parts[1]));
+        const isExpired = payload.exp < Date.now() / 1000;
+        if (isExpired) {
+          console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+        }
+        return isExpired;
+      } catch (error) {
+        console.error('Error saat memeriksa token:', error);
+        return true;
+      }
+    }
+
+    function getInitials(name) {
+      if (!name) return "PP";
+      const initials = name.match(/\b\w/g) || [];
+      return initials.join('').toUpperCase().slice(0, 2);
+    }
+
+    async function loadUserProfile() {
+      const token = localStorage.getItem("token");
+      if (!token || isTokenExpired(token)) {
+        console.log('Token tidak valid atau kadaluarsa, mengatur UI untuk pengunjung publik');
+        localStorage.clear();
+        return false;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Gagal mengambil profil:', error.message);
+          if (response.status === 401 || response.status === 403) {
+            localStorage.clear();
+            alert('Sesi Anda telah berakhir. Silakan login kembali.');
+            window.location.href = '../auth/login.html';
+            return false;
+          }
+          throw new Error('Gagal mengambil profil');
+        }
+
+        const userData = await response.json();
+        console.log('Data profil pengguna:', userData);
+
+        localStorage.setItem('nama_pengguna', userData.nama_pengguna || '');
+        localStorage.setItem('email', userData.email || '');
+        localStorage.setItem('peran', userData.peran || '');
+        localStorage.setItem('id_kelas', userData.id_kelas || '');
+        localStorage.setItem('id_pengguna', userData.id_pengguna || '');
+
+        return true;
+      } catch (error) {
+        console.error('Error saat memuat profil:', error);
+        localStorage.clear();
+        return false;
+      }
+    }
+
+    function handleAuthClick(event) {
+      event.preventDefault();
+      const token = localStorage.getItem("token");
+      if (token && !isTokenExpired(token)) {
+        logout();
+      } else {
+        window.location.href = "../auth/login.html";
+      }
+    }
+
+    function restrictBookingAccess(event) {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+      if (!token || isTokenExpired(token) || (peran !== "ketua" && peran !== "sekretaris")) {
+        event.preventDefault();
+        alert("Anda harus login sebagai ketua atau sekretaris untuk mengakses halaman Booking!");
+        window.location.href = "../auth/login.html";
+      }
+    }
+
+    function logout() {
+      localStorage.clear();
+      alert("Anda telah logout.");
+      window.location.href = "../auth/login.html";
+    }
+
+    async function checkRoomAvailability(jamMulai, jamSelesai, hari, tanggal, idRuangan, excludeJadwalId = null) {
+  const token = localStorage.getItem("token");
+  const jamMulaiWithSeconds = `${jamMulai}:00`;
+  const jamSelesaiWithSeconds = `${jamSelesai}:00`;
+
+  try {
+    let url = `http://localhost:3000/api/jadwal/available-rooms?hari=${encodeURIComponent(hari)}&jam_mulai=${encodeURIComponent(jamMulaiWithSeconds)}&jam_selesai=${encodeURIComponent(jamSelesaiWithSeconds)}&tanggal=${encodeURIComponent(tanggal)}`;
+    if (excludeJadwalId) {
+      url += `&excludeJadwalId=${encodeURIComponent(excludeJadwalId)}`;
+    }
+
+    const response = await fetch(url, {
+      headers: token ? { "Authorization": `Bearer ${token}` } : {},
+    });
+
+    if (!response.ok) throw new Error("Gagal memeriksa ketersediaan ruangan");
+
+    const availableRooms = await response.json();
+    console.log("[Debug] Ruangan tersedia:", availableRooms);
+
+    return availableRooms.some(room => room.id_ruangan === idRuangan);
+  } catch (error) {
+    console.error("Error checking room availability:", error);
+    return false;
+  }
+}
+
+    async function updateJadwalStatus(id, status, jamMulai = null, jamSelesai = null) {
+  const tanggal = document.getElementById("jadwalDate").value || new Date().toISOString().split("T")[0];
+  const token = localStorage.getItem("token");
+  const errorMessageDiv = document.getElementById("errorMessage");
+
+  if (!token) {
+    errorMessageDiv.textContent = "Anda harus login untuk mengubah status.";
+    errorMessageDiv.classList.remove("hidden");
+    return;
+  }
+
+  let jamMulaiBaru = jamMulai;
+  let jamSelesaiBaru = jamSelesai;
+  if (status === "Tunda" && (!jamMulaiBaru || !jamSelesaiBaru)) {
+    errorMessageDiv.textContent = "Harap pilih jam mulai dan jam selesai untuk tunda.";
+    errorMessageDiv.classList.remove("hidden");
+    return;
+  }
+
+  let jadwal;
+  try {
+    const jadwalData = await fetchJadwalDetail(id);
+    if (!jadwalData || jadwalData.length === 0) {
+      errorMessageDiv.textContent = "Jadwal tidak ditemukan.";
+      errorMessageDiv.classList.remove("hidden");
+      return;
+    }
+    jadwal = jadwalData[0];
+  } catch (error) {
+    errorMessageDiv.textContent = error.message || "Gagal mengambil detail jadwal.";
+    errorMessageDiv.classList.remove("hidden");
+    return;
+  }
+
+  const hari = new Date(tanggal).toLocaleString("id-ID", { weekday: "long", timeZone: 'Asia/Makassar' });
+
+  // Cek status saat ini
+  const currentStatus = jadwal.temp_status || jadwal.status;
+  if (currentStatus === "Tunda" && status === "Masuk") {
+    // Ambil jam default dari kelas_jadwal
+    const jamMulaiDefault = jadwal.jam_mulai;
+    const jamSelesaiDefault = jadwal.jam_selesai;
+
+    // Periksa apakah ada pemesanan lain yang bertabrakan pada jam default
+    const response = await fetch(
+      `http://localhost:3000/api/pemesanan/check-conflict?id_ruangan=${jadwal.id_ruangan}&tanggal=${tanggal}&jam_mulai=${jamMulaiDefault}&jam_selesai=${jamSelesaiDefault}`,
+      {
+        headers: { "Authorization": `Bearer ${token}` },
+      }
+    );
+    const conflictData = await response.json();
+    if (!response.ok) {
+      errorMessageDiv.textContent = `Gagal memeriksa konflik: ${conflictData.message || 'Unknown error'}`;
+      errorMessageDiv.classList.remove("hidden");
+      return;
+    }
+
+    if (conflictData.conflict) {
+      errorMessageDiv.textContent = "Tidak dapat mengubah status ke 'Masuk': Ada pemesanan lain pada jam default.";
+      errorMessageDiv.classList.remove("hidden");
+      return;
+    }
+  }
+
+  if (status === "Tunda") {
+    const isRoomAvailable = await checkRoomAvailability(jamMulaiBaru, jamSelesaiBaru, hari, tanggal, jadwal.id_ruangan, id); // Kirim id sebagai excludeJadwalId
+    if (!isRoomAvailable) {
+      errorMessageDiv.textContent = "Ruangan tidak tersedia pada jam yang dipilih!";
+      errorMessageDiv.classList.remove("hidden");
+      return;
+    }
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/jadwal/${id}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status, tanggal, jamMulaiBaru, jamSelesaiBaru }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(`Gagal memperbarui status: ${result.message || 'Unknown error'}`);
+    }
+
+    errorMessageDiv.textContent = result.message || "Status jadwal berhasil diubah.";
+    errorMessageDiv.classList.remove("hidden");
+
+    await Promise.all([fetchJadwal(), fetchStatistics()]);
+  } catch (error) {
+    console.error("Error updating status:", error);
+    errorMessageDiv.textContent = `Error saat memperbarui status: ${error.message}`;
+    errorMessageDiv.classList.remove("hidden");
+  }
+}
+
+    // Fungsi untuk mengambil detail jadwal berdasarkan id
+    async function fetchJadwalDetail(id) {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(`http://localhost:3000/api/jadwal/${id}`, {
+          headers: { "Authorization": `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(`Gagal mengambil detail jadwal: ${error.message || 'Unknown error'}`);
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [data];
+      } catch (error) {
+        console.error("Error fetching jadwal detail:", error);
+        throw error; // Lempar error agar ditangani oleh pemanggil
+      }
+    }
+
+    async function fetchStatistics() {
+      const jadwalDateInput = document.getElementById("jadwalDate");
+      const selectedDate = jadwalDateInput.value ? new Date(jadwalDateInput.value) : new Date();
+      const hari = selectedDate.toLocaleString("id-ID", { weekday: "long", timeZone: 'Asia/Makassar' });
+      const tanggal = selectedDate.toISOString().split("T")[0];
+      const token = localStorage.getItem("token");
+      let isAuthenticated = token && !isTokenExpired(token);
+      const peran = localStorage.getItem("peran");
+
+      console.log('Token dari localStorage:', token);
+      console.log('Apakah pengguna terautentikasi:', isAuthenticated);
+
+      if (token && isTokenExpired(token)) {
+        console.log('Token kadaluarsa, menghapus localStorage');
+        localStorage.clear();
+        isAuthenticated = false;
+      }
+
+      try {
+        let endpoint;
+        if (isAuthenticated && (peran === "admin" || peran === "ketua" || peran === "sekretaris")) {
+          endpoint = `/api/statistics/admin?tanggal=${encodeURIComponent(tanggal)}`;
+        } else {
+          endpoint = `/api/statistics/public?tanggal=${encodeURIComponent(tanggal)}`;
+        }
+        console.log(`Mengambil statistik dari ${endpoint} untuk tanggal ${tanggal}`);
+        const response = await fetch(`http://localhost:3000${endpoint}`, {
+          method: "GET",
+          headers: isAuthenticated ? { "Authorization": `Bearer ${token}` } : {},
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error(`Error dari ${endpoint}: ${response.status} - ${error.message || 'Unknown error'}`);
+          if (isAuthenticated && response.status === 401) {
+            localStorage.clear();
+            alert("Sesi Anda telah berakhir. Silakan login kembali.");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const stats = await response.json();
+        console.log("Data statistik:", stats);
+
+        document.getElementById("totalRooms").textContent = stats.totalRooms || 0;
+        document.getElementById("availableRooms").textContent = stats.availableRooms || 0;
+        document.getElementById("bookedRooms").textContent = stats.bookedRooms || 0;
+      } catch (error) {
+        console.error("Error fetching statistics:", error);
+        document.getElementById("totalRooms").textContent = 0;
+        document.getElementById("availableRooms").textContent = 0;
+        document.getElementById("bookedRooms").textContent = 0;
+        alert("Gagal memuat statistik: " + error.message);
+      }
+    }
+
+    async function fetchJadwal() {
+      const jadwalDateInput = document.getElementById("jadwalDate");
+      const selectedDate = jadwalDateInput.value ? new Date(jadwalDateInput.value) : new Date();
+      const hari = selectedDate.toLocaleString("id-ID", { weekday: "long", timeZone: 'Asia/Makassar' });
+      const tanggal = selectedDate.toISOString().split("T")[0];
+      const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false, timeZone: 'Asia/Makassar' }).slice(0, 5);
+      const token = localStorage.getItem("token");
+      let isAuthenticated = token && !isTokenExpired(token);
+      const errorMessageDiv = document.getElementById("errorMessage");
+
+      console.log('Token dari localStorage:', token);
+      console.log('Apakah pengguna terautentikasi:', isAuthenticated);
+
+      if (token && isTokenExpired(token)) {
+        console.log('Token kadaluarsa, menghapus localStorage');
+        localStorage.clear();
+        isAuthenticated = false;
+      }
+
+      try {
+        let endpoint;
+        if (isAuthenticated) {
+          const peran = localStorage.getItem("peran");
+          if (peran !== "ketua" && peran !== "sekretaris") {
+            throw new Error("Akses ditolak. Halaman ini hanya untuk ketua atau sekretaris.");
+          }
+          endpoint = `/api/jadwal?hari=${encodeURIComponent(hari)}&tanggal=${tanggal}`;
+        } else {
+          endpoint = `/api/jadwal/public?hari=${encodeURIComponent(hari)}&tanggal=${tanggal}&waktu=${encodeURIComponent(currentTime)}`;
+          errorMessageDiv.textContent = 'Pengunjung publik tidak dapat melihat jadwal yang sudah berakhir.';
+          errorMessageDiv.classList.remove("hidden");
+        }
+        console.log(`Mengambil jadwal untuk hari ${hari} dari ${endpoint}...`);
+        const response = await fetch(`http://localhost:3000${endpoint}`, {
+          method: "GET",
+          headers: isAuthenticated ? { "Authorization": `Bearer ${token}` } : {},
+        });
+        console.log(`Status response dari ${endpoint}: ${response.status}`);
+        if (!response.ok) {
+          const error = await response.json();
+          console.error(`Error dari server: ${response.status} - ${error.message || 'Unknown error'}`);
+          if (isAuthenticated && response.status === 401) {
+            localStorage.clear();
+            alert("Sesi Anda telah berakhir. Silakan login kembali.");
+            window.location.href = "../auth/login.html";
+            return;
+          }
+          errorMessageDiv.textContent = `Gagal mengambil jadwal: ${error.message || 'Terjadi kesalahan pada server.'}`;
+          errorMessageDiv.classList.remove("hidden");
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const jadwals = await response.json();
+        console.log("Data jadwal yang diterima:", jadwals);
+        displayJadwal(jadwals, isAuthenticated);
+      } catch (error) {
+        console.error("Error fetching jadwal:", error);
+        errorMessageDiv.textContent = `Gagal mengambil jadwal: ${error.message}. Silakan coba lagi nanti.`;
+        errorMessageDiv.classList.remove("hidden");
+        displayJadwal([], isAuthenticated);
+      }
+    }
+
+    function displayJadwal(jadwals, isAuthenticated) {
+      const tbody = document.getElementById("jadwalTable");
+      tbody.innerHTML = "";
+
+      const filteredJadwals = jadwals;
+
+      if (filteredJadwals.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="8" class="py-3 px-6 text-center text-gray-500">${
+          isAuthenticated
+            ? 'Tidak ada jadwal untuk kelas Anda hari ini.'
+            : 'Tidak ada jadwal yang dimulai setelah waktu saat ini.'
+        }</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+
+      filteredJadwals.forEach((jadwal) => {
+        console.log('Jadwal item:', jadwal);
+
+        if (!jadwal.id_kelas_jadwal) {
+          console.error('Jadwal ID tidak ditemukan untuk item:', jadwal);
+          return;
+        }
+
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-100";
+        const status = jadwal.temp_status || jadwal.status;
+        const statusClass = status === "Masuk" ? "text-green-500" : status === "Tunda" ? "text-yellow-500" : "text-red-500";
+        
+        const jamMulai = status === "Tunda" && jadwal.jam_mulai_baru ? jadwal.jam_mulai_baru : jadwal.jam_mulai;
+        const jamSelesai = status === "Tunda" && jadwal.jam_selesai_baru ? jadwal.jam_selesai_baru : jadwal.jam_selesai;
+
+        const actionCell = isAuthenticated
+          ? `
+            <button onclick="updateJadwalStatus(${jadwal.id_kelas_jadwal}, 'Libur')" class="bg-red-500 text-white px-2 py-1 rounded mr-2 hover:bg-red-600">Libur</button>
+            <button onclick="handleTunda(${jadwal.id_kelas_jadwal})" class="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-yellow-600">Tunda</button>
+            <button onclick="updateJadwalStatus(${jadwal.id_kelas_jadwal}, 'Masuk')" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Masuk</button>
+          `
+          : "-";
+
+        row.innerHTML = `
+          <td class="py-3 px-6">${jadwal.nama_kelas || "N/A"}</td>
+          <td class="py-3 px-6">${jadwal.nama_ruangan || "N/A"}</td>
+          <td class="py-3 px-6">${jadwal.nama_matkul || "N/A"}</td>
+          <td class="py-3 px-6">${jadwal.nama_dosen || "N/A"}</td>
+          <td class="py-3 px-6">${jadwal.hari || "N/A"}</td>
+          <td class="py-3 px-6">${jamMulai || "N/A"} - ${jamSelesai || "N/A"}</td>
+          <td class="py-3 px-6 ${statusClass}">${status || "N/A"}</td>
+          <td class="py-3 px-6">${actionCell}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    let currentJadwalId = null; // Variabel global untuk menyimpan ID jadwal yang sedang ditunda
+
+    function handleTunda(id) {
+      currentJadwalId = id;
+      const modal = document.getElementById("tundaModal");
+      modal.classList.remove("hidden");
+      document.getElementById("tundaJamMulai").focus();
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const jadwalDateInput = document.getElementById("jadwalDate");
+      jadwalDateInput.value = now.toLocaleString('sv', { timeZone: 'Asia/Makassar' }).split(' ')[0]; // Format YYYY-MM-DD
+      document.getElementById("datetime").textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: 'Asia/Makassar',
+      });
+      fetchJadwal();
+      fetchStatistics();
+    }
+
+    async function checkAccountLimit() {
+      const token = localStorage.getItem("token");
+      if (!token || isTokenExpired(token)) return;
+
+      const peran = localStorage.getItem("peran");
+      const idKelas = localStorage.getItem("id_kelas");
+      console.log('ID Kelas dari localStorage:', idKelas);
+
+      if ((peran === 'ketua' || peran === 'sekretaris') && (!idKelas || idKelas === 'null' || idKelas === '')) {
+        console.warn("ID Kelas tidak ditemukan. Booking dinonaktifkan.");
+        document.getElementById("bookingButtons").classList.add("hidden");
+        alert("Akun Anda tidak terkait dengan kelas. Hubungi admin untuk memperbaiki.");
+        return;
+      }
+    }
+
+    async function updateUIBasedOnAuth() {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+      const navLinks = document.getElementById("navLinks");
+      const profileDropdown = document.getElementById("profileDropdown");
+
+      const isAuthenticated = await loadUserProfile();
+
+      const namaPengguna = localStorage.getItem("nama_pengguna") || "Pengunjung Publik";
+      const email = localStorage.getItem("email") || "Silakan login untuk akses penuh";
+      const updatedPeran = localStorage.getItem("peran") || "";
+      const initials = getInitials(namaPengguna);
+
+      const today = new Date().toLocaleString("id-ID", { weekday: "long", timeZone: 'Asia/Makassar' }).toLowerCase();
+      const isBookingAllowed = ['senin', 'selasa', 'rabu', 'kamis', 'jumat'].includes(today);
+      console.log(`Hari ini: ${today}, Booking diperbolehkan: ${isBookingAllowed}`);
+
+      if (isAuthenticated && updatedPeran) {
+        if (updatedPeran !== "ketua" && updatedPeran !== "sekretaris") {
+          alert("Akses ditolak. Halaman ini hanya untuk ketua atau sekretaris.");
+          localStorage.clear();
+          window.location.href = "../auth/login.html";
+          return;
+        }
+
+        if (!navLinks.querySelector("a[href='../dashboard/settings.html']")) {
+          const settingsLink = document.createElement("li");
+          settingsLink.innerHTML = '<a href="../dashboard/settings.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Pengaturan</a>';
+          navLinks.appendChild(settingsLink);
+        }
+        if (!profileDropdown.querySelector("a[href='../dashboard/settings.html']")) {
+          const settingsProfileLink = document.createElement("a");
+          settingsProfileLink.href = "../dashboard/settings.html";
+          settingsProfileLink.className = "text-blue-500 hover:underline block";
+          settingsProfileLink.textContent = "Pengaturan Profil";
+          profileDropdown.insertBefore(settingsProfileLink, profileDropdown.querySelector("hr").nextSibling);
+        }
+
+        document.getElementById("userName").textContent = namaPengguna;
+        document.getElementById("userEmail").textContent = email;
+        document.getElementById("profileBtnInitials").textContent = initials;
+        document.getElementById("profileInitials").textContent = initials;
+        document.getElementById("authLink").textContent = "Logout";
+        if (updatedPeran === "ketua" || updatedPeran === "sekretaris") {
+          if (isBookingAllowed) {
+            document.getElementById("bookingButtons").classList.remove("hidden");
+          } else {
+            document.getElementById("bookingButtons").classList.add("hidden");
+            alert("Booking hanya tersedia pada hari Senin sampai Jumat.");
+          }
+        }
+      } else {
+        const settingsLink = navLinks.querySelector("a[href='../dashboard/settings.html']");
+        if (settingsLink) navLinks.removeChild(settingsLink.parentElement);
+        const settingsProfileLink = profileDropdown.querySelector("a[href='../dashboard/settings.html']");
+        if (settingsProfileLink) profileDropdown.removeChild(settingsProfileLink);
+
+        document.getElementById("userName").textContent = "Pengunjung Publik";
+        document.getElementById("userEmail").textContent = "Silakan login untuk akses penuh";
+        document.getElementById("profileBtnInitials").textContent = "PP";
+        document.getElementById("profileInitials").textContent = "PP";
+        document.getElementById("authLink").textContent = "Login";
+        document.getElementById("bookingButtons").classList.add("hidden");
+      }
+
+      if (updatedPeran === "ketua" || updatedPeran === "sekretaris") {
+        checkAccountLimit();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const token = localStorage.getItem("token");
+      const peran = localStorage.getItem("peran");
+      console.log('Token dari localStorage:', token);
+      console.log('Peran dari localStorage:', peran);
+
+      if (token && isTokenExpired(token)) {
+        console.log('Token kadaluarsa, menghapus localStorage');
+        localStorage.clear();
+      } else if (token && !isTokenExpired(token) && peran) {
+        if (peran !== "ketua" && peran !== "sekretaris") {
+          alert("Akses ditolak. Halaman ini hanya untuk ketua atau sekretaris.");
+          localStorage.clear();
+          window.location.href = "../auth/login.html";
+          return;
+        }
+      }
+
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+      await updateUIBasedOnAuth();
+
+      const profileBtn = document.getElementById("profileBtn");
+      const profileDropdown = document.getElementById("profileDropdown");
+      profileBtn.addEventListener("click", () => profileDropdown.classList.toggle("hidden"));
+      document.addEventListener("click", (event) => {
+        if (!profileBtn.contains(event.target) && !profileDropdown.contains(event.target)) {
+          profileDropdown.classList.add("hidden");
+        }
+      });
+
+      const modal = document.getElementById("tundaModal");
+      const cancelBtn = document.getElementById("tundaCancelBtn");
+      const submitBtn = document.getElementById("tundaSubmitBtn");
+      const errorDiv = document.getElementById("tundaError");
+      const jamMulaiInput = document.getElementById("tundaJamMulai");
+      const jamSelesaiInput = document.getElementById("tundaJamSelesai");
+
+      cancelBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+        jamMulaiInput.value = "";
+        jamSelesaiInput.value = "";
+        errorDiv.classList.add("hidden");
+        currentJadwalId = null; // Reset currentJadwalId
+        fetchJadwal();
+      });
+
+      submitBtn.addEventListener("click", async () => {
+        const jamMulai = jamMulaiInput.value;
+        const jamSelesai = jamSelesaiInput.value;
+        const jadwalDateInput = document.getElementById("jadwalDate");
+        const tanggal = jadwalDateInput.value || new Date().toISOString().split("T")[0];
+        const hari = new Date(tanggal).toLocaleString("id-ID", { weekday: "long", timeZone: 'Asia/Makassar' });
+
+        console.log(`[Debug] Input Values: jamMulai=${jamMulai}, jamSelesai=${jamSelesai}, tanggal=${tanggal}, hari=${hari}, currentJadwalId=${currentJadwalId}`);
+
+        if (!jamMulai || !jamSelesai) {
+          errorDiv.textContent = "Harap isi jam mulai dan jam selesai!";
+          errorDiv.classList.remove("hidden");
+          return;
+        }
+
+        if (jamSelesai <= jamMulai) {
+          errorDiv.textContent = "Jam selesai harus setelah jam mulai!";
+          errorDiv.classList.remove("hidden");
+          return;
+        }
+
+        if (!currentJadwalId) {
+          errorDiv.textContent = "Jadwal tidak valid. Silakan coba lagi.";
+          errorDiv.classList.remove("hidden");
+          return;
+        }
+
+        let jadwal;
+        try {
+          const jadwalData = await fetchJadwalDetail(currentJadwalId);
+          if (!jadwalData || jadwalData.length === 0) {
+            errorDiv.textContent = "Jadwal tidak ditemukan.";
+            errorDiv.classList.remove("hidden");
+            return;
+          }
+          jadwal = jadwalData[0];
+        } catch (error) {
+          errorDiv.textContent = error.message || "Gagal mengambil detail jadwal.";
+          errorDiv.classList.remove("hidden");
+          return;
+        }
+
+        // Pengecekan ketersediaan ruangan sudah dilakukan di updateJadwalStatus, jadi tidak perlu di sini
+        await updateJadwalStatus(currentJadwalId, "Tunda", jamMulai, jamSelesai);
+        modal.classList.add("hidden");
+        jamMulaiInput.value = "";
+        jamSelesaiInput.value = "";
+        errorDiv.classList.add("hidden");
+        currentJadwalId = null; // Reset currentJadwalId
+      });
+    });
+  </script>
+</body>
+</html>

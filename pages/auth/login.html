@@ -1,0 +1,173 @@
+<!-- pages/auth/login.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - RoomEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Fungsi untuk mengecek apakah token kadaluarsa
+        function isTokenExpired(token) {
+            if (!token) {
+                console.error('Token tidak ditemukan di localStorage');
+                return true;
+            }
+
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    console.error('Format token tidak valid:', token);
+                    return true;
+                }
+
+                const payload = JSON.parse(atob(parts[1]));
+                const isExpired = payload.exp < Date.now() / 1000;
+                if (isExpired) {
+                    console.log('Token telah kadaluarsa:', payload.exp, 'vs', Date.now() / 1000);
+                }
+                return isExpired;
+            } catch (error) {
+                console.error('Error saat memeriksa token:', error);
+                return true;
+            }
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById("email").value.trim();
+            const kata_sandi = document.getElementById("password").value.trim();
+            
+            if (!email || !kata_sandi) {
+                alert("Email dan kata sandi wajib diisi!");
+                return;
+            }
+            if (!/^\S+@\S+\.\S+$/.test(email)) {
+                alert("Format email tidak valid!");
+                return;
+            }
+            if (kata_sandi.length < 6) {
+                alert("Kata sandi harus minimal 6 karakter!");
+                return;
+            }
+            
+            try {
+                console.log('Mengirim login request dengan:', { email, kata_sandi });
+                const response = await fetch('http://127.0.0.1:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, kata_sandi })
+                });
+                
+                const data = await response.json();
+                console.log('Respons dari server:', data);
+                
+                if (response.ok) {
+                    if (!data.token || !data.peran) {
+                        console.error('Respons server tidak lengkap:', data);
+                        alert("Data login tidak lengkap. Hubungi administrator.");
+                        return;
+                    }
+        
+                    // Validasi id_kelas untuk ketua atau sekretaris
+                    if ((data.peran === 'ketua' || data.peran === 'sekretaris') && (!data.id_kelas || data.id_kelas === 'null' || data.id_kelas === '')) {
+                        console.error('ID kelas tidak ditemukan untuk peran:', data.peran);
+                        alert("Akun Anda tidak terkait dengan kelas. Hubungi administrator.");
+                        return;
+                    }
+
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('nama_pengguna', data.nama_pengguna || '');
+                    localStorage.setItem('email', data.email || '');
+                    localStorage.setItem('no_telepon', data.no_telepon || '');
+                    localStorage.setItem('peran', data.peran || '');
+                    localStorage.setItem('id_kelas', data.id_kelas || '');
+                    console.log('ID Kelas disimpan ke localStorage:', data.id_kelas);
+        
+                    // Dekode token untuk debugging
+                    const token = data.token;
+                    const parts = token.split('.');
+                    if (parts.length === 3) {
+                        const payload = JSON.parse(atob(parts[1]));
+                        console.log('Isi payload token:', payload);
+                    } else {
+                        console.error('Format token tidak valid:', token);
+                    }
+                    
+                    const peran = data.peran.toLowerCase();
+                    if (peran === 'admin') {
+                        console.log('Mengalihkan ke admin-dashboard.html');
+                        window.location.href = '../dashboard/admin-dashboard.html';
+                    } else if (peran === 'ketua' || peran === 'sekretaris') {
+                        console.log('Mengalihkan ke ketua-dashboard.html');
+                        window.location.href = '../dashboard/ketua-dashboard.html';
+                    } else {
+                        console.error('Peran tidak dikenali:', peran);
+                        alert(`Peran tidak dikenali: ${peran || 'undefined'}. Hubungi administrator.`);
+                        localStorage.clear();
+                    }
+                } else {
+                    alert(data.message || "Terjadi kesalahan saat login. Silakan coba lagi.");
+                }
+            } catch (error) {
+                console.error('Error saat login:', error);
+                alert("Gagal terhubung ke server. Periksa koneksi Anda dan coba lagi.");
+            }
+        }
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+            const peran = localStorage.getItem('peran');
+            console.log('Token dari localStorage:', token);
+            console.log('Peran dari localStorage:', peran);
+        
+            // Hanya arahkan ke dashboard jika token valid dan peran sesuai
+            if (token && !isTokenExpired(token) && peran) {
+                const peranLower = peran.toLowerCase();
+                if (peranLower === 'admin') {
+                    console.log('Token valid, mengalihkan ke admin-dashboard.html');
+                    window.location.href = '../dashboard/admin-dashboard.html';
+                } else if (peranLower === 'ketua' || peranLower === 'sekretaris') {
+                    console.log('Token valid, mengalihkan ke ketua-dashboard.html');
+                    window.location.href = '../dashboard/ketua-dashboard.html';
+                } else {
+                    console.warn('Peran tidak dikenali:', peranLower);
+                    localStorage.clear();
+                }
+            } else if (token && isTokenExpired(token)) {
+                console.log('Token kadaluarsa, menghapus localStorage');
+                localStorage.clear();
+            }
+        
+            const loginForm = document.querySelector("form");
+            loginForm.addEventListener("submit", login);
+        });
+    </script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-md p-8 bg-white shadow-lg rounded-2xl">
+        <h2 class="text-2xl font-bold text-center text-gray-700 mb-6">Login ke RoomEase</h2>
+        <form class="space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-600">Email</label>
+                <input type="email" id="email" name="email" required
+                    class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-blue-300 focus:border-blue-500">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-600">Kata Sandi</label>
+                <input type="password" id="password" name="password" required
+                    class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-blue-300 focus:border-blue-500">
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2 rounded border-gray-300"> Ingat saya
+                </label>
+                <a href="forgot-password.html" class="text-blue-500 hover:underline">Lupa kata sandi?</a>
+            </div>
+            <button type="submit"
+                class="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition">Login</button>
+        </form>
+    </div>
+</body>
+</html>

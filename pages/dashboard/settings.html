@@ -1,0 +1,492 @@
+<!-- dashboard/settings.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan - RoomEase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-900 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">RoomEase</h1>
+    <ul class="flex space-x-4">
+      <li>
+        <a href="#" id="dashboardLink" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">
+          Dashboard
+        </a>
+      </li>
+      <li><a href="../booking/building-bookings.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Booking</a></li>
+      <li><a href="../booking/kalender.html" class="block p-2 rounded-lg hover:bg-blue-500 hover:text-white">Kalender</a></li>
+    </ul>
+    <div class="relative">
+      <button id="profileBtn" class="flex items-center space-x-2 bg-gray-300 text-black px-3 py-2 rounded-full">
+        <span class="font-bold" id="profileBtnInitials">AW</span>
+      </button>
+      <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4 text-black">
+        <div class="flex items-center space-x-3">
+          <div class="bg-green-500 text-white w-12 h-12 flex items-center justify-center rounded-full text-lg font-bold" id="dropdownInitials">AW</div>
+          <div>
+            <p id="userName" class="font-bold"></p>
+            <p id="userEmail" class="text-sm text-gray-500"></p>
+          </div>
+        </div>
+        <hr class="my-2">
+        <a id="authLink" href="#" class="text-blue-500 hover:underline block" onclick="handleAuthClick(event)">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Konten Utama -->
+  <main class="max-w-4xl mx-auto bg-white p-6 shadow-lg mt-6 rounded-lg">
+    <h2 class="text-2xl font-bold text-gray-700">Pengaturan Akun</h2>
+    <p class="text-gray-600 mt-2">Kelola informasi akun RoomEase Anda.</p>
+
+    <!-- Ganti Email -->
+    <div class="mt-4">
+      <label class="block font-semibold">Email Pribadi <span class="text-red-500">*</span></label>
+      <div class="flex items-center border border-gray-300 p-2 rounded-lg bg-gray-200">
+        <input type="email" id="emailField" value="" disabled class="w-full bg-transparent text-gray-600">
+        <button id="editEmailBtn" class="ml-2 text-blue-500 hover:text-blue-700">✏️</button>
+      </div>
+      <p id="emailStatus" class="text-green-600 mt-1">✅ Email sudah diverifikasi</p>
+    </div>
+
+    <!-- Ganti No. WhatsApp -->
+    <div class="mt-4">
+      <label class="block font-semibold">Nomor WhatsApp <span class="text-red-500">*</span></label>
+      <div class="flex items-center border border-gray-300 p-2 rounded-lg bg-gray-200">
+        <input type="text" id="waField" value="" disabled class="w-full bg-transparent text-gray-600">
+        <button id="editWaBtn" class="ml-2 text-blue-500 hover:text-blue-700">✏️</button>
+      </div>
+    </div>
+
+    <!-- Ganti Kata Sandi -->
+    <div class="mt-6">
+      <h3 class="text-xl font-semibold">Ganti Kata Sandi</h3>
+      <button id="changePasswordBtn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+        ✔ Ganti Kata Sandi
+      </button>
+    </div>
+
+    <!-- Modal Verifikasi Kata Sandi -->
+    <div id="verifyPasswordModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Verifikasi Kata Sandi</h3>
+        <p class="text-gray-600 mt-2">Masukkan kata sandi saat ini untuk melanjutkan perubahan.</p>
+        <form id="verifyPasswordForm" class="mt-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Kata Sandi Saat Ini <span class="text-red-500">*</span></label>
+            <input type="password" id="currentPassword" placeholder="Masukkan Kata Sandi" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 transition">Verifikasi</button>
+          <button type="button" id="forgotPasswordLink" class="mt-2 w-full text-center text-blue-500 hover:underline">Lupa Password?</button>
+          <button type="button" id="cancelVerifyBtn" class="mt-2 w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700">Batalkan</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Ganti Email -->
+    <div id="changeEmailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Ubah Email</h3>
+        <form id="changeEmailForm" class="mt-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Email Baru <span class="text-red-500">*</span></label>
+            <input type="email" id="newEmail" placeholder="Masukkan Email Baru" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 transition">Simpan</button>
+          <button type="button" id="cancelEmailBtn" class="mt-2 w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700">Batalkan</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Ganti WhatsApp -->
+    <div id="changeWaModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Ubah Nomor WhatsApp</h3>
+        <form id="changeWaForm" class="mt-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Nomor WhatsApp Baru <span class="text-red-500">*</span></label>
+            <input type="tel" id="newWa" placeholder="Masukkan Nomor WhatsApp Baru" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 transition">Simpan</button>
+          <button type="button" id="cancelWaBtn" class="mt-2 w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700">Batalkan</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Ganti Kata Sandi -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800">Pembaruan Kata Sandi</h3>
+        <p class="text-gray-600 mt-2">Lebih aman untuk mengganti password secara berkala.</p>
+        <form id="passwordForm" class="mt-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Password Baru <span class="text-red-500">*</span></label>
+            <input type="password" id="newPassword" placeholder="Masukkan Password Baru" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 font-semibold">Ulangi Password Baru <span class="text-red-500">*</span></label>
+            <input type="password" id="confirmPassword" placeholder="Ulangi Password Baru" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 transition">Simpan</button>
+          <button type="button" id="cancelPassBtn" class="mt-2 w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700">Batalkan</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Fungsi untuk mengecek apakah token expired
+    function isTokenExpired(token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp < Date.now() / 1000;
+      } catch (error) {
+        return true;
+      }
+    }
+
+    // Fungsi untuk mendapatkan inisial dari nama
+    function getInitials(name) {
+      if (!name) return "PP"; // Default untuk Pengunjung Publik
+      const words = name.trim().split(" ");
+      if (words.length === 1) return words[0].charAt(0).toUpperCase();
+      return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+    }
+
+    // Fungsi untuk menangani klik auth (Login/Logout)
+    function handleAuthClick(event) {
+      event.preventDefault();
+      const token = localStorage.getItem("token");
+      if (token && !isTokenExpired(token)) {
+        logout();
+      } else {
+        window.location.href = "../auth/login.html";
+      }
+    }
+
+    // Fungsi logout
+    function logout() {
+      const token = localStorage.getItem("token");
+      if (token && !isTokenExpired(token)) {
+        localStorage.clear(); // Bersihkan semua data localStorage
+        alert("Anda telah logout dan sekarang menjadi pengunjung publik.");
+        location.reload();
+      }
+    }
+
+    // Fungsi untuk memastikan token valid sebelum melanjutkan
+    function checkTokenAndRedirect() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        alert('Sesi Anda telah berakhir. Silakan login ulang.');
+        localStorage.clear();
+        window.location.href = '../auth/login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // Fungsi untuk memuat data profil dari API
+    async function loadProfile() {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        // Kembali ke mode pengunjung publik jika token tidak valid
+        document.getElementById('userName').textContent = "Pengunjung Publik";
+        document.getElementById('userEmail').textContent = "Silakan login untuk akses penuh";
+        document.getElementById('emailField').value = "";
+        document.getElementById('waField').value = "";
+        document.getElementById('emailStatus').textContent = "";
+        document.getElementById('profileBtnInitials').textContent = "PP";
+        document.getElementById('dropdownInitials').textContent = "PP";
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/auth/profile', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          throw new Error('Gagal memuat data profil');
+        }
+        const user = await response.json();
+        document.getElementById('userName').textContent = user.nama_pengguna || "Pengunjung Publik";
+        document.getElementById('userEmail').textContent = user.email || "Silakan login untuk akses penuh";
+        document.getElementById('emailField').value = user.email || "";
+        document.getElementById('waField').value = user.no_telepon || "";
+        document.getElementById('emailStatus').textContent = user.email ? "✅ Email sudah diverifikasi" : "";
+        const initials = getInitials(user.nama_pengguna);
+        document.getElementById('profileBtnInitials').textContent = initials;
+        document.getElementById('dropdownInitials').textContent = initials;
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        alert('Gagal memuat data profil. Silakan coba lagi atau login ulang.');
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      let nameUser = localStorage.getItem("nama_pengguna") || "";
+      let email = localStorage.getItem("email") || "";
+      let phoneNum = localStorage.getItem("no_telepon") || "";
+      let role = localStorage.getItem("peran") || "";
+
+      // Periksa token dan update UI awal
+      if (token && !isTokenExpired(token)) {
+        nameUser = localStorage.getItem("nama_pengguna") || "";
+        email = localStorage.getItem("email") || "";
+        phoneNum = localStorage.getItem("no_telepon") || "";
+        role = localStorage.getItem("peran") || "";
+        document.getElementById("authLink").textContent = "Logout";
+      } else {
+        nameUser = "";
+        email = "";
+        phoneNum = "";
+        role = "";
+        document.getElementById("authLink").textContent = "Login";
+      }
+
+      // Update elemen UI awal (akan diganti oleh loadProfile)
+      document.getElementById("userName").textContent = nameUser || "Pengunjung Publik";
+      document.getElementById("userEmail").textContent = email || "Silakan login untuk akses penuh";
+      document.getElementById("emailField").value = email || "";
+      document.getElementById("waField").value = phoneNum || "";
+      document.getElementById("emailStatus").textContent = email ? "✅ Email sudah diverifikasi" : "";
+
+      const userInitials = getInitials(nameUser);
+      document.getElementById("profileBtnInitials").textContent = userInitials;
+      document.getElementById("dropdownInitials").textContent = userInitials;
+
+      // Set dashboard link berdasarkan peran
+      const dashboardLink = document.getElementById('dashboardLink');
+      if (role === 'admin') {
+        dashboardLink.href = '../dashboard/admin-dashboard.html';
+        dashboardLink.textContent = 'Admin Dashboard';
+      } else if (role === 'ketua' || role === 'sekretaris') {
+        dashboardLink.href = '../dashboard/ketua-dashboard.html';
+        dashboardLink.textContent = 'Ketua Dashboard';
+      } else {
+        dashboardLink.href = '#';
+        dashboardLink.textContent = 'Dashboard';
+      }
+
+      // Muat data profil dari API
+      loadProfile();
+
+      // Event Listener untuk Edit Email
+      document.getElementById('editEmailBtn').addEventListener('click', () => {
+        if (checkTokenAndRedirect()) {
+          document.getElementById('verifyPasswordModal').classList.remove('hidden');
+          window.currentAction = 'changeEmail';
+        }
+      });
+
+      // Event Listener untuk Edit WhatsApp
+      document.getElementById('editWaBtn').addEventListener('click', () => {
+        if (checkTokenAndRedirect()) {
+          document.getElementById('verifyPasswordModal').classList.remove('hidden');
+          window.currentAction = 'changeWa';
+        }
+      });
+
+      // Event Listener untuk Ganti Password
+      document.getElementById('changePasswordBtn').addEventListener('click', () => {
+        if (checkTokenAndRedirect()) {
+          document.getElementById('verifyPasswordModal').classList.remove('hidden');
+          window.currentAction = 'changePassword';
+        }
+      });
+
+      // Verifikasi Password
+      document.getElementById('verifyPasswordForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!checkTokenAndRedirect()) return;
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const token = localStorage.getItem('token');
+        console.log('Attempting to verify password:', currentPassword);
+
+        try {
+          const response = await fetch('http://localhost:3000/api/user/verify-password', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ password: currentPassword })
+          });
+
+          const result = await response.json();
+          console.log('Verify password response:', result);
+
+          if (response.ok) {
+            document.getElementById('verifyPasswordModal').classList.add('hidden');
+            if (window.currentAction === 'changeEmail') {
+              document.getElementById('changeEmailModal').classList.remove('hidden');
+            } else if (window.currentAction === 'changeWa') {
+              document.getElementById('changeWaModal').classList.remove('hidden');
+            } else if (window.currentAction === 'changePassword') {
+              document.getElementById('passwordModal').classList.remove('hidden');
+            }
+          } else {
+            console.error('Failed to verify password:', result.message);
+            alert(`Gagal: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Error verifying password:', error);
+          alert(`Terjadi kesalahan pada server: ${error.message}`);
+        }
+      });
+
+      // Ganti Email
+      document.getElementById('changeEmailForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!checkTokenAndRedirect()) return;
+
+        const newEmail = document.getElementById('newEmail').value;
+        const token = localStorage.getItem('token');
+
+        try {
+          const response = await fetch('http://localhost:3000/api/user/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ email: newEmail })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            localStorage.setItem('email', newEmail);
+            document.getElementById('emailField').value = newEmail;
+            document.getElementById('userEmail').textContent = newEmail;
+            document.getElementById('changeEmailModal').classList.add('hidden');
+            loadProfile();
+            alert('Email berhasil diperbarui!');
+          } else {
+            alert(`Gagal: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Error updating email address:', error);
+          alert(`Terjadi kesalahan pada server: ${error.message}`);
+        }
+      });
+
+      // Ganti Nomor WhatsApp
+      document.getElementById('changeWaForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!checkTokenAndRedirect()) return;
+
+        const newWa = document.getElementById('newWa').value;
+        const token = localStorage.getItem('token');
+
+        try {
+          const response = await fetch('http://localhost:3000/api/user/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ no_telepon: newWa })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            localStorage.setItem('no_telepon', newWa);
+            document.getElementById('waField').value = newWa;
+            document.getElementById('changeWaModal').classList.add('hidden');
+            loadProfile();
+            alert('Nomor WhatsApp berhasil diperbarui!');
+          } else {
+            alert(`Gagal: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Error updating WhatsApp number:', error);
+          alert(`Terjadi kesalahan pada server: ${error.message}`);
+        }
+      });
+
+      // Ganti Password
+      document.getElementById('passwordForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!checkTokenAndRedirect()) return;
+
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const token = localStorage.getItem('token');
+
+        if (newPassword !== confirmPassword) {
+          alert('Password baru dan konfirmasi tidak cocok!');
+          return;
+        }
+
+        try {
+          const response = await fetch('http://localhost:3000/api/user/change-password', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ newPassword })
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            document.getElementById('passwordModal').classList.add('hidden');
+            document.getElementById('passwordForm').reset();
+            alert('Password berhasil diperbarui!');
+          } else {
+            alert(`Gagal memperbarui password: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Error changing password:', error);
+          alert(`Terjadi kesalahan pada server: ${error.message}`);
+        }
+      });
+
+      // Forgot Password
+      document.getElementById('forgotPasswordLink').addEventListener('click', () => {
+        document.getElementById('verifyPasswordModal').classList.add('hidden');
+        window.location.href = '../auth/forgot-password.html';
+      });
+
+      // Cancel Buttons
+      document.getElementById('cancelVerifyBtn').addEventListener('click', () => {
+        document.getElementById('verifyPasswordModal').classList.add('hidden');
+      });
+
+      document.getElementById('cancelEmailBtn').addEventListener('click', () => {
+        document.getElementById('changeEmailModal').classList.add('hidden');
+      });
+
+      document.getElementById('cancelWaBtn').addEventListener('click', () => {
+        document.getElementById('changeWaModal').classList.add('hidden');
+      });
+
+      document.getElementById('cancelPassBtn').addEventListener('click', () => {
+        document.getElementById('passwordModal').classList.add('hidden');
+        document.getElementById('passwordForm').reset();
+      });
+
+      // Dropdown Profile
+      const profileBtn = document.getElementById('profileBtn');
+      const profileDropdown = document.getElementById('profileDropdown');
+      profileBtn.addEventListener('click', () => {
+        profileDropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (event) => {
+        if (!profileBtn.contains(event.target) && !profileDropdown.contains(event.target)) {
+          profileDropdown.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

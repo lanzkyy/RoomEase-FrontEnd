@@ -1,0 +1,31 @@
+<!-- auth/logout.html -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logout - RoomEase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+  <div class="w-full max-w-md p-8 bg-white shadow-lg rounded-2xl text-center">
+    <h2 class="text-2xl font-bold text-gray-700 mb-6">Logout</h2>
+    <p class="text-gray-600 mb-4">Anda yakin ingin keluar?</p>
+    <button id="confirmLogout" class="w-full px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 transition">Ya, Keluar</button>
+    <a href="../dashboard/ketua-dashboard.html" class="mt-4 block text-blue-500 hover:underline">Tidak, Kembali</a>
+  </div>
+
+  <script>
+    document.getElementById("confirmLogout").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("nama_pengguna");
+      localStorage.removeItem("email");
+      localStorage.removeItem("peran");
+      localStorage.removeItem("id_kelas");
+      alert("Anda telah logout.");
+      window.location.href = "../auth/login.html";
+    });
+  </script>
+</body>
+</html>

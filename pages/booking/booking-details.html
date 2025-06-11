@@ -1,0 +1,123 @@
+<!-- booking/booking-details.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Booking - RoomEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-md p-8 bg-white shadow-lg rounded-2xl">
+        <h2 class="text-2xl font-bold text-center text-gray-700 mb-6">Detail Booking</h2>
+        <p><strong>Kelas:</strong> <span id="kelas">Memuat...</span></p>
+        <p><strong>Ruangan:</strong> <span id="ruangan">Memuat...</span></p>
+        <p><strong>Mata Kuliah:</strong> <span id="mata_kuliah">Memuat...</span></p>
+        <p><strong>Dosen:</strong> <span id="dosen">Memuat...</span></p>
+        <p><strong>Waktu Mulai:</strong> <span id="waktu_mulai">Memuat...</span></p>
+        <p><strong>Waktu Selesai:</strong> <span id="waktu_selesai">Memuat...</span></p>
+        <a href="#" id="backLink" class="block text-center mt-4 text-blue-500 hover:underline">Kembali</a>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        let userProfile = null;
+        let bookingData = null;
+
+        function isTokenExpired(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                return payload.exp < Date.now() / 1000;
+            } catch (error) {
+                return true;
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch("http://localhost:3000/api/auth/profile", {
+                    headers: { "Authorization": `Bearer ${token}` },
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Gagal memuat profil pengguna");
+                }
+                userProfile = await response.json();
+            } catch (error) {
+                console.error("Gagal mengambil profil pengguna:", error);
+                alert(`Gagal memuat profil pengguna: ${error.message}. Silakan login ulang.`);
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+            }
+        }
+
+        async function fetchBookingDetails(bookingId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/pemesanan/${bookingId}`, {
+                    headers: { "Authorization": `Bearer ${token}` },
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Gagal memuat detail pemesanan");
+                }
+                bookingData = await response.json();
+            } catch (error) {
+                console.error("Gagal mengambil detail pemesanan:", error);
+                alert(`Gagal memuat detail pemesanan: ${error.message}`);
+                window.location.href = "../dashboard/ketua-dashboard.html";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!token || isTokenExpired(token)) {
+                alert("Anda harus login terlebih dahulu!");
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            await fetchUserProfile();
+            if (!userProfile || (userProfile.peran !== "admin" && userProfile.peran !== "ketua" && userProfile.peran !== "sekretaris")) {
+                alert("Anda tidak memiliki akses untuk melihat detail pemesanan!");
+                localStorage.removeItem("token");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const bookingId = params.get("id");
+            if (!bookingId) {
+                alert("ID pemesanan tidak ditemukan!");
+                window.location.href = "../dashboard/ketua-dashboard.html";
+                return;
+            }
+
+            await fetchBookingDetails(bookingId);
+
+            if (userProfile.peran !== "admin" && bookingData.id_kelas !== userProfile.id_kelas) {
+                alert("Anda hanya dapat melihat pemesanan kelas Anda!");
+                window.location.href = "../dashboard/ketua-dashboard.html";
+                return;
+            }
+
+            document.getElementById("kelas").textContent = bookingData.nama_kelas || "Tidak tersedia";
+            document.getElementById("ruangan").textContent = bookingData.nama_ruangan || "Tidak tersedia";
+            document.getElementById("mata_kuliah").textContent = bookingData.nama_matkul || "Tidak tersedia";
+            document.getElementById("dosen").textContent = bookingData.nama_dosen || "Tidak tersedia";
+            document.getElementById("waktu_mulai").textContent = bookingData.waktu_mulai 
+                ? new Date(bookingData.waktu_mulai).toLocaleString("id-ID", { timeZone: "Asia/Makassar", dateStyle: "medium", timeStyle: "short" }) 
+                : "Tidak tersedia";
+            document.getElementById("waktu_selesai").textContent = bookingData.waktu_selesai 
+                ? new Date(bookingData.waktu_selesai).toLocaleString("id-ID", { timeZone: "Asia/Makassar", dateStyle: "medium", timeStyle: "short" }) 
+                : "Tidak tersedia";
+
+            const backLink = document.getElementById("backLink");
+            if (userProfile.peran === "admin") {
+                backLink.href = "admin-approvals.html";
+            } else {
+                backLink.href = "building-bookings.html";
+            }
+        });
+    </script>
+</body>
+</html>
