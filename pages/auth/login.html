@@ -61,6 +61,13 @@
                     body: JSON.stringify({ email, kata_sandi })
                 });
                 
+                if (!response.ok) {
+  const text = await response.text();  // untuk debug isi error jika bukan JSON
+  console.error("Server error (non-200):", text);
+  alert("Login gagal: " + text);
+  return;
+}
+
                 const data = await response.json();
                 console.log('Respons dari server:', data);
                 
