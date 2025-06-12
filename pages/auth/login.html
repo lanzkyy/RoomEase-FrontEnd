@@ -55,7 +55,7 @@
             
             try {
                 console.log('Mengirim login request dengan:', { email, kata_sandi });
-                const response = await fetch('${API_BASE_URL}/api/auth/login', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, kata_sandi })
