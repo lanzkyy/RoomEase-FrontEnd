@@ -351,7 +351,7 @@
       }
 
       try {
-        const response = await fetch('http://localhost:3000/api/prodi', {
+        const response = await fetch('${API_BASE_URL}/api/prodi', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -389,7 +389,7 @@
       const hari = selectedDate.toLocaleString("id-ID", { weekday: "long" });
 
       try {
-        const url = `http://localhost:3000/api/jadwal?hari=${encodeURIComponent(hari)}`;
+        const url = `${API_BASE_URL}/api/jadwal?hari=${encodeURIComponent(hari)}`;
         const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -442,18 +442,18 @@
           throw new Error('Format jam_selesai tidak valid. Gunakan format HH:mm (misalnya 11:55).');
         }
 
-        let ruanganUrl = 'http://localhost:3000/api/ruangan';
+        let ruanganUrl = '${API_BASE_URL}/api/ruangan';
         if (hari && jamMulai && jamSelesai) {
           const dummyDate = "2025-01-01";
           const dayIndex = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].indexOf(hari);
           const baseDate = new Date(dummyDate);
           baseDate.setDate(baseDate.getDate() + (dayIndex - baseDate.getDay() + 7) % 7);
           const formattedDate = baseDate.toISOString().split("T")[0];
-          ruanganUrl = `http://localhost:3000/api/jadwal/available-rooms?hari=${encodeURIComponent(hari)}&jam_mulai=${encodeURIComponent(jamMulai)}&jam_selesai=${encodeURIComponent(jamSelesai)}&tanggal=${encodeURIComponent(formattedDate)}`;
+          ruanganUrl = `${API_BASE_URL}/api/jadwal/available-rooms?hari=${encodeURIComponent(hari)}&jam_mulai=${encodeURIComponent(jamMulai)}&jam_selesai=${encodeURIComponent(jamSelesai)}&tanggal=${encodeURIComponent(formattedDate)}`;
         }
 
         const [kelasResp, ruanganResp] = await Promise.all([
-          fetch('http://localhost:3000/api/kelas', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('${API_BASE_URL}/api/kelas', { headers: { 'Authorization': `Bearer ${token}` } }),
           fetch(ruanganUrl, { headers: { 'Authorization': `Bearer ${token}` } }),
         ]);
 
@@ -467,7 +467,7 @@
             const errorData = await resp.json();
             if (name === 'ruangan' && hari && jamMulai && jamSelesai) {
               alert('Gagal memfilter ruangan yang tersedia. Menampilkan semua ruangan sebagai alternatif.');
-              const fallbackResp = await fetch('http://localhost:3000/api/ruangan', {
+              const fallbackResp = await fetch('${API_BASE_URL}/api/ruangan', {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
               if (!fallbackResp.ok) {
@@ -531,7 +531,7 @@ function validateTimeFormat(time) {
       }
 
       try {
-        const kelasResponse = await fetch(`http://localhost:3000/api/kelas/${kelasId}`, {
+        const kelasResponse = await fetch(`${API_BASE_URL}/api/kelas/${kelasId}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!kelasResponse.ok) {
@@ -542,7 +542,7 @@ function validateTimeFormat(time) {
         const idProdi = kelasData.id_prodi;
         const semester = kelasData.semester;
 
-        const matkulResponse = await fetch(`http://localhost:3000/api/mata-kuliah?id_prodi=${idProdi}&semester=${semester}`, {
+        const matkulResponse = await fetch(`${API_BASE_URL}/api/mata-kuliah?id_prodi=${idProdi}&semester=${semester}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!matkulResponse.ok) {
@@ -580,7 +580,7 @@ function validateTimeFormat(time) {
       }
 
       try {
-        const dosenResponse = await fetch(`http://localhost:3000/api/dosen?prodi=${idProdi}`, {
+        const dosenResponse = await fetch(`${API_BASE_URL}/api/dosen?prodi=${idProdi}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!dosenResponse.ok) {
@@ -732,7 +732,7 @@ function validateTimeFormat(time) {
 
       setLoadingState(document.getElementById('addJadwalSubmitBtn'), true);
       try {
-        const response = await fetch('http://localhost:3000/api/jadwal', {
+        const response = await fetch('${API_BASE_URL}/api/jadwal', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -788,7 +788,7 @@ function validateTimeFormat(time) {
       document.getElementById('editIdMatkul').value = idMatkul;
 
       // Ambil prodi dari dosen yang dipilih
-      const dosenResponse = await fetch(`http://localhost:3000/api/dosen/${idDosen}`, {
+      const dosenResponse = await fetch(`${API_BASE_URL}/api/dosen/${idDosen}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (dosenResponse.ok) {
@@ -839,7 +839,7 @@ function validateTimeFormat(time) {
 
       setLoadingState(document.getElementById('editJadwalSubmitBtn'), true);
       try {
-        const response = await fetch(`http://localhost:3000/api/jadwal/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/jadwal/${id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -886,7 +886,7 @@ function validateTimeFormat(time) {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/jadwal/jadwal/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/jadwal/jadwal/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -940,7 +940,7 @@ function validateTimeFormat(time) {
 
       setLoadingState(document.getElementById('updateStatusSubmitBtn'), true);
       try {
-        const response = await fetch(`http://localhost:3000/api/jadwal/${id}/confirm`, {
+        const response = await fetch(`${API_BASE_URL}/api/jadwal/${id}/confirm`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

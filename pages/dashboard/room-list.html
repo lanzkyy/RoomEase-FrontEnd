@@ -86,7 +86,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/auth/profile', {
+                const response = await fetch('${API_BASE_URL}/api/auth/profile', {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` },
                 });
@@ -182,7 +182,7 @@
       ? '/api/ruangan/status'
       : '/api/ruangan/public/status';
     const params = `hari=${encodeURIComponent(hari)}&tanggal=${encodeURIComponent(tanggal)}&waktu=${encodeURIComponent(selectedTime)}`;
-    const response = await fetch(`http://localhost:3000${endpoint}?${params}`, {
+    const response = await fetch(`${API_BASE_URL}${endpoint}?${params}`, {
       method: "GET",
       headers: isAuthenticated ? { "Authorization": `Bearer ${token}` } : {},
     });

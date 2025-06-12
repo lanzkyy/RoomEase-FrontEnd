@@ -206,7 +206,7 @@
       }
 
       try {
-        const response = await fetch('http://localhost:3000/api/auth/profile', {
+        const response = await fetch('${API_BASE_URL}/api/auth/profile', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -312,7 +312,7 @@
         console.log('Attempting to verify password:', currentPassword);
 
         try {
-          const response = await fetch('http://localhost:3000/api/user/verify-password', {
+          const response = await fetch('${API_BASE_URL}/api/user/verify-password', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -352,7 +352,7 @@
         const token = localStorage.getItem('token');
 
         try {
-          const response = await fetch('http://localhost:3000/api/user/update', {
+          const response = await fetch('${API_BASE_URL}/api/user/update', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -387,7 +387,7 @@
         const token = localStorage.getItem('token');
 
         try {
-          const response = await fetch('http://localhost:3000/api/user/update', {
+          const response = await fetch('${API_BASE_URL}/api/user/update', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -427,7 +427,7 @@
         }
 
         try {
-          const response = await fetch('http://localhost:3000/api/user/change-password', {
+          const response = await fetch('${API_BASE_URL}/api/user/change-password', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

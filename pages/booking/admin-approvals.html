@@ -55,7 +55,7 @@
 
         async function fetchUserProfile() {
             try {
-                const response = await fetch("http://localhost:3000/api/auth/profile", {
+                const response = await fetch("${API_BASE_URL}/api/auth/profile", {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -73,7 +73,7 @@
 
         async function approveBooking(id) {
   try {
-    const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/pemesanan/${id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -95,7 +95,7 @@
 
 async function rejectBooking(id) {
   try {
-    const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/pemesanan/${id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ async function rejectBooking(id) {
 
         async function rejectBooking(id) {
             try {
-                const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+                const response = await fetch(`${API_BASE_URL}/api/pemesanan/${id}/status`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -142,8 +142,8 @@ async function rejectBooking(id) {
     try {
         const statusFilter = document.getElementById("statusFilter").value;
         const url = statusFilter 
-            ? `http://localhost:3000/api/pemesanan/bookings?status=${statusFilter}`
-            : `http://localhost:3000/api/pemesanan/bookings`;
+            ? `${API_BASE_URL}/api/pemesanan/bookings?status=${statusFilter}`
+            : `${API_BASE_URL}/api/pemesanan/bookings`;
         console.log("Fetching bookings from URL:", url);
         const response = await fetch(url, {
             headers: { "Authorization": `Bearer ${token}` },

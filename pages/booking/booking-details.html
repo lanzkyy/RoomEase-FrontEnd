@@ -35,7 +35,7 @@
 
         async function fetchUserProfile() {
             try {
-                const response = await fetch("http://localhost:3000/api/auth/profile", {
+                const response = await fetch("${API_BASE_URL}/api/auth/profile", {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -53,7 +53,7 @@
 
         async function fetchBookingDetails(bookingId) {
             try {
-                const response = await fetch(`http://localhost:3000/api/pemesanan/${bookingId}`, {
+                const response = await fetch(`${API_BASE_URL}/api/pemesanan/${bookingId}`, {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {

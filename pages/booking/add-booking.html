@@ -76,7 +76,7 @@
         async function fetchUserProfile() {
     try {
         console.log("ID Kelas dari localStorage:", localStorage.getItem('id_kelas'));
-        const response = await fetch("http://localhost:3000/api/auth/profile", {
+        const response = await fetch("${API_BASE_URL}/api/auth/profile", {
             headers: { "Authorization": `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -101,7 +101,7 @@
 
         async function fetchAllRooms() {
             try {
-                const response = await fetch("http://localhost:3000/api/ruangan", {
+                const response = await fetch("${API_BASE_URL}/api/ruangan", {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -119,7 +119,7 @@
 
         async function fetchProdi() {
             try {
-                const response = await fetch("http://localhost:3000/api/mata-kuliah/prodi", {
+                const response = await fetch("${API_BASE_URL}/api/mata-kuliah/prodi", {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -142,7 +142,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/mata-kuliah/filter?id_prodi=${userProfile.id_prodi}&semester=${userProfile.semester}`, {
+                const response = await fetch(`${API_BASE_URL}/api/mata-kuliah/filter?id_prodi=${userProfile.id_prodi}&semester=${userProfile.semester}`, {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -171,7 +171,7 @@
             dosenSelect.disabled = false;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/dosen?prodi=${idProdi}`, {
+                const response = await fetch(`${API_BASE_URL}/api/dosen?prodi=${idProdi}`, {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -218,7 +218,7 @@
     }
 
     try {
-        let ruanganUrl = "http://localhost:3000/api/pemesanan/available-rooms"; // Perbaiki endpoint
+        let ruanganUrl = "${API_BASE_URL}/api/pemesanan/available-rooms"; // Perbaiki endpoint
         if (hari && jamMulai && jamSelesai && tanggal) {
             ruanganUrl += `?hari=${encodeURIComponent(hari)}&tanggal=${encodeURIComponent(tanggal)}&jam_mulai=${encodeURIComponent(jamMulai)}&jam_selesai=${encodeURIComponent(jamSelesai)}`;
         }
@@ -380,7 +380,7 @@
     }
 
     try {
-        const response = await fetch("http://localhost:3000/api/pemesanan", {
+        const response = await fetch("${API_BASE_URL}/api/pemesanan", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

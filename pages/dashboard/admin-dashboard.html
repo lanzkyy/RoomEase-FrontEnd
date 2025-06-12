@@ -186,6 +186,8 @@
     </div>
   </main>
 
+  <script src="../../assets/config.js"></script>
+
   <script>
     // Fungsi untuk memeriksa token
     function checkToken() {
@@ -271,7 +273,7 @@
       const selectedDate = jadwalDateInput.value || new Date().toISOString().split("T")[0];
 
       try {
-        const response = await fetch(`http://localhost:3000/api/statistics/admin?tanggal=${encodeURIComponent(selectedDate)}`, {
+        const response = await fetch(`${API_BASE_URL}/api/statistics/admin?tanggal=${encodeURIComponent(selectedDate)}`, {
           method: "GET",
           headers: { "Authorization": `Bearer ${token}` },
         });
@@ -327,7 +329,7 @@
           throw new Error('Format jam_selesai tidak valid. Gunakan format HH:mm (misalnya 11:55).');
         }
 
-        let ruanganUrl = 'http://localhost:3000/api/ruangan';
+        let ruanganUrl = '${API_BASE_URL}/api/ruangan';
         if (hari && jamMulai && jamSelesai) {
           const dummyDate = "2025-01-01";
           const dayIndex = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].indexOf(hari);
@@ -336,13 +338,13 @@
           const formattedDate = baseDate.toISOString().split("T")[0];
           const waktu_mulai = `${formattedDate} ${jamMulai}:00`;
           const waktu_selesai = `${formattedDate} ${jamSelesai}:00`;
-          ruanganUrl = `http://localhost:3000/api/jadwal/available-rooms?waktu_mulai=${encodeURIComponent(waktu_mulai)}&waktu_selesai=${encodeURIComponent(waktu_selesai)}`;
+          ruanganUrl = `${API_BASE_URL}/api/jadwal/available-rooms?waktu_mulai=${encodeURIComponent(waktu_mulai)}&waktu_selesai=${encodeURIComponent(waktu_selesai)}`;
         }
 
         const [kelasResp, matkulResp, dosenResp, ruanganResp] = await Promise.all([
-          fetch('http://localhost:3000/api/kelas', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3000/api/mata-kuliah', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3000/api/dosen', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('${API_BASE_URL}/api/kelas', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('${API_BASE_URL}/api/mata-kuliah', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('${API_BASE_URL}/api/dosen', { headers: { 'Authorization': `Bearer ${token}` } }),
           fetch(ruanganUrl, { headers: { 'Authorization': `Bearer ${token}` } }),
         ]);
 
@@ -357,7 +359,7 @@
           if (!resp.ok) {
             const errorData = await resp.json();
             if (name === 'ruangan' && hari && jamMulai && jamSelesai) {
-              const fallbackResp = await fetch('http://localhost:3000/api/ruangan', {
+              const fallbackResp = await fetch('${API_BASE_URL}://localhost:3000/api/ruangan', {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
               if (!fallbackResp.ok) {
@@ -448,7 +450,7 @@
 
       try {
         console.log(`Mengambil jadwal untuk hari: ${hari} pada tanggal: ${tanggal} dengan filter kelas: ${idKelas || 'Semua'} dari /api/jadwal...`);
-        const url = `http://localhost:3000/api/jadwal?hari=${encodeURIComponent(hari)}&tanggal=${encodeURIComponent(tanggal)}${idKelas ? `&id_kelas=${encodeURIComponent(idKelas)}` : ''}`;
+        const url = `${API_BASE_URL}/api/jadwal?hari=${encodeURIComponent(hari)}&tanggal=${encodeURIComponent(tanggal)}${idKelas ? `&id_kelas=${encodeURIComponent(idKelas)}` : ''}`;
         const response = await fetch(url, {
           method: "GET",
           headers: { "Authorization": `Bearer ${token}` },
@@ -613,7 +615,7 @@
       setLoadingState(submitBtn, true);
 
       try {
-        const response = await fetch(`http://localhost:3000/api/jadwal/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/jadwal/${id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -663,7 +665,7 @@
       if (!confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) return;
 
       try {
-        const response = await fetch(`http://localhost:3000/api/jadwal/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/jadwal/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` },
         });

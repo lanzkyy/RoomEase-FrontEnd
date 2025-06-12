@@ -111,6 +111,8 @@
     </div>
   </div>
 
+  <script src="../../assets/config.js"></script>
+
   <script>
     function isTokenExpired(token) {
       if (!token) {
@@ -152,7 +154,7 @@
       }
 
       try {
-        const response = await fetch('http://localhost:3000/api/auth/profile', {
+        const response = await fetch('${API_BASE_URL}/api/auth/profile', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -220,7 +222,7 @@
   const jamSelesaiWithSeconds = `${jamSelesai}:00`;
 
   try {
-    let url = `http://localhost:3000/api/jadwal/available-rooms?hari=${encodeURIComponent(hari)}&jam_mulai=${encodeURIComponent(jamMulaiWithSeconds)}&jam_selesai=${encodeURIComponent(jamSelesaiWithSeconds)}&tanggal=${encodeURIComponent(tanggal)}`;
+    let url = `${API_BASE_URL}/api/jadwal/available-rooms?hari=${encodeURIComponent(hari)}&jam_mulai=${encodeURIComponent(jamMulaiWithSeconds)}&jam_selesai=${encodeURIComponent(jamSelesaiWithSeconds)}&tanggal=${encodeURIComponent(tanggal)}`;
     if (excludeJadwalId) {
       url += `&excludeJadwalId=${encodeURIComponent(excludeJadwalId)}`;
     }
@@ -286,7 +288,7 @@
 
     // Periksa apakah ada pemesanan lain yang bertabrakan pada jam default
     const response = await fetch(
-      `http://localhost:3000/api/pemesanan/check-conflict?id_ruangan=${jadwal.id_ruangan}&tanggal=${tanggal}&jam_mulai=${jamMulaiDefault}&jam_selesai=${jamSelesaiDefault}`,
+      `${API_BASE_URL}/api/pemesanan/check-conflict?id_ruangan=${jadwal.id_ruangan}&tanggal=${tanggal}&jam_mulai=${jamMulaiDefault}&jam_selesai=${jamSelesaiDefault}`,
       {
         headers: { "Authorization": `Bearer ${token}` },
       }
@@ -315,7 +317,7 @@
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/jadwal/${id}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/jadwal/${id}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -344,7 +346,7 @@
     async function fetchJadwalDetail(id) {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch(`http://localhost:3000/api/jadwal/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/jadwal/${id}`, {
           headers: { "Authorization": `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -385,7 +387,7 @@
           endpoint = `/api/statistics/public?tanggal=${encodeURIComponent(tanggal)}`;
         }
         console.log(`Mengambil statistik dari ${endpoint} untuk tanggal ${tanggal}`);
-        const response = await fetch(`http://localhost:3000${endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: "GET",
           headers: isAuthenticated ? { "Authorization": `Bearer ${token}` } : {},
         });
@@ -450,7 +452,7 @@
           errorMessageDiv.classList.remove("hidden");
         }
         console.log(`Mengambil jadwal untuk hari ${hari} dari ${endpoint}...`);
-        const response = await fetch(`http://localhost:3000${endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: "GET",
           headers: isAuthenticated ? { "Authorization": `Bearer ${token}` } : {},
         });

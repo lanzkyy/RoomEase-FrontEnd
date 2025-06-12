@@ -142,7 +142,7 @@
 
       try {
         console.log('Mengambil data ruangan dari server...');
-        const response = await fetch('http://localhost:3000/api/ruangan', {
+        const response = await fetch('${API_BASE_URL}/api/ruangan', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         console.log('Response status:', response.status);
@@ -226,7 +226,7 @@
 
       try {
         console.log('Mengirim request POST ke /api/ruangan');
-        const response = await fetch('http://localhost:3000/api/ruangan', {
+        const response = await fetch('${API_BASE_URL}/api/ruangan', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -283,7 +283,7 @@
       }
 
       try {
-        const response = await fetch(`http://localhost:3000/api/ruangan/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/ruangan/${id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -330,7 +330,7 @@
 
       if (confirm('Apakah Anda yakin ingin menghapus ruangan ini?')) {
         try {
-          const response = await fetch(`http://localhost:3000/api/ruangan/${id}`, {
+          const response = await fetch(`${API_BASE_URL}/api/ruangan/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` },
           });

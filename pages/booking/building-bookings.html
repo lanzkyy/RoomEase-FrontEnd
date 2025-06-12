@@ -50,7 +50,7 @@
 
         async function fetchUserProfile() {
             try {
-                const response = await fetch("http://localhost:3000/api/auth/profile", {
+                const response = await fetch("${API_BASE_URL}/api/auth/profile", {
                     headers: { "Authorization": `Bearer ${token}` },
                 });
                 if (!response.ok) throw new Error((await response.json()).message || "Gagal memuat profil");
@@ -65,7 +65,7 @@
 
         async function confirmStatus(id, status) {
             try {
-                const response = await fetch(`http://localhost:3000/api/pemesanan/${id}/status`, {
+                const response = await fetch(`${API_BASE_URL}/api/pemesanan/${id}/status`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -90,7 +90,7 @@
             if (!confirm("Apakah Anda yakin ingin menghapus pemesanan ini?")) return;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/pemesanan/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/pemesanan/${id}`, {
                     method: "DELETE",
                     headers: { "Authorization": `Bearer ${token}` },
                 });
@@ -109,7 +109,7 @@
 
         async function fetchBookings() {
     try {
-        const response = await fetch("http://localhost:3000/api/pemesanan/my-bookings", {
+        const response = await fetch("${API_BASE_URL}/api/pemesanan/my-bookings", {
             headers: { "Authorization": `Bearer ${token}` },
         });
         console.log("Response status:", response.status);

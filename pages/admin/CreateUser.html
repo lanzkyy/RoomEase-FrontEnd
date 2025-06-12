@@ -180,7 +180,7 @@
       </div>
     </div>
   </main>
-
+  <script src="../../assets/config.js"></script>
   <script>
     // Fungsi untuk memeriksa token
     function checkToken() {
@@ -264,7 +264,7 @@
       editProdiSelect.innerHTML = '<option value="">Memuat Program Studi...</option>';
 
       try {
-        const response = await fetch('http://localhost:3000/api/prodi', {
+        const response = await fetch('${API_BASE_URL}/api/prodi', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -340,7 +340,7 @@
       kelasSelect.innerHTML = '<option value="">Memuat Kelas...</option>';
 
       try {
-        const response = await fetch(`http://localhost:3000/api/prodi/kelas?id_prodi=${idProdi}`, {
+        const response = await fetch(`${API_BASE_URL}/api/prodi/kelas?id_prodi=${idProdi}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -427,7 +427,7 @@
       setLoadingState(submitBtn, true);
 
       try {
-        const response = await fetch('http://localhost:3000/api/auth/register-by-admin', {
+        const response = await fetch('${API_BASE_URL}/api/auth/register-by-admin', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -480,8 +480,8 @@
       const errorMessageDiv = document.getElementById("errorMessage");
 
       try {
-        console.log('Fetching users from: http://localhost:3000/api/users');
-        const response = await fetch('http://localhost:3000/api/users', {
+        console.log('Fetching users from: ${API_BASE_URL}/api/users');
+        const response = await fetch('${API_BASE_URL}/api/users', {
           method: "GET",
           headers: { "Authorization": `Bearer ${token}` },
         });
@@ -563,7 +563,7 @@
             try {
               const token = localStorage.getItem("token");
               console.log(`Deleting user with ID: ${id}`);
-              const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+              const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` },
               });
@@ -597,7 +597,7 @@
       // Fetch the Prodi ID for the user's class
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3000/api/kelas`, {
+        const response = await fetch(`${API_BASE_URL}/api/kelas`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -686,7 +686,7 @@
 
       try {
         console.log(`Updating user with ID: ${id}`);
-        const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,

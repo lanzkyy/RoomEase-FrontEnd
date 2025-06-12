@@ -153,7 +153,7 @@
   }
 
   try {
-    const response = await fetch('http://localhost:3000/api/prodi', {
+    const response = await fetch('${API_BASE_URL}/api/prodi', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     if (!response.ok) {
@@ -200,7 +200,7 @@
       }
 
       try {
-        const url = prodi ? `http://localhost:3000/api/dosen?prodi=${encodeURIComponent(prodi)}` : 'http://localhost:3000/api/dosen';
+        const url = prodi ? `${API_BASE_URL}/api/dosen?prodi=${encodeURIComponent(prodi)}` : '${API_BASE_URL}/api/dosen';
         const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -281,7 +281,7 @@
   }
 
   try {
-    const response = await fetch('http://localhost:3000/api/dosen', {
+    const response = await fetch('${API_BASE_URL}/api/dosen', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -316,7 +316,7 @@
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/dosen/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/dosen/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -348,7 +348,7 @@
 
       if (confirm('Apakah Anda yakin ingin menghapus dosen ini?')) {
         try {
-          const response = await fetch(`http://localhost:3000/api/dosen/${id}`, {
+          const response = await fetch(`${API_BASE_URL}/api/dosen/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` },
           });

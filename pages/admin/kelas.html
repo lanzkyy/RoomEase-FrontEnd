@@ -144,7 +144,7 @@
 
       try {
         console.log('Mengambil data prodi dari server...');
-        const response = await fetch('http://localhost:3000/api/prodi', {
+        const response = await fetch('${API_BASE_URL}/api/prodi', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -200,7 +200,7 @@
 
       try {
         console.log('Mengambil data kelas dari server...');
-        const response = await fetch('http://localhost:3000/api/kelas', {
+        const response = await fetch('${API_BASE_URL}/api/kelas', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         console.log('Response status:', response.status);
@@ -306,7 +306,7 @@
 
       try {
         console.log('Mengirim request POST ke /api/kelas dengan data:', { nama_kelas: trimmedNama, id_prodi: idProdi });
-        const response = await fetch('http://localhost:3000/api/kelas', {
+        const response = await fetch('${API_BASE_URL}/api/kelas', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -385,7 +385,7 @@
 
       try {
         console.log('Mengirim request PUT ke /api/kelas/' + id + ' dengan data:', { nama_kelas: trimmedNama, id_prodi: idProdi });
-        const response = await fetch(`http://localhost:3000/api/kelas/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/kelas/${id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -449,7 +449,7 @@
 
       try {
         console.log('Mengirim request DELETE ke /api/kelas/' + id);
-        const response = await fetch(`http://localhost:3000/api/kelas/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/kelas/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` },
         });
